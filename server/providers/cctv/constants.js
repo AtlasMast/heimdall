@@ -103,6 +103,11 @@ export const TXDOT_DISTRICT_ELEVATION_M = Object.freeze({
 export const TXDOT_DEFAULT_ELEVATION_M = 150;
 export const CALTRANS_CCTV_URL = (district) =>
   `https://cwwp2.dot.ca.gov/data/d${district}/cctv/cctvStatusD${String(district).padStart(2, '0')}.json`;
+/** The only origin Caltrans live video may come from (its Wowza HLS host). */
+export const CALTRANS_VIDEO_ORIGIN = 'https://wzmedia.dot.ca.gov';
+/** The per-camera manifest path Caltrans publishes: /D<district>/<name>.stream/playlist.m3u8. */
+export const CALTRANS_VIDEO_PATH =
+  /^\/D\d{1,2}\/[A-Za-z0-9_.-]+\.stream\/playlist\.m3u8$/;
 /** Districts fetched by default: SF Bay (4), LA (7), San Diego (11), Sacramento (3). */
 export const DEFAULT_CALTRANS_DISTRICTS = '4,7,11,3';
 export const DEFAULT_CALTRANS_MAX_SOURCES = 300;
