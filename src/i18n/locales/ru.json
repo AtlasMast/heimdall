@@ -2959,5 +2959,11 @@
   "SDR decoder fell behind; receiver stopped": "Декодер SDR не успевает; приёмник остановлен",
   "Exit cockpit to jump to street level": "Выйдите из кабины, чтобы спуститься на уровень улицы",
   "STREET JUMP": "НА УЛИЦУ",
-  "Fly down to street level at the middle of the view and open the nearest image there (G)": "Спуститься на уровень улицы в центре вида и открыть ближайший снимок (G)"
+  "Fly down to street level at the middle of the view and open the nearest image there (G)": "Спуститься на уровень улицы в центре вида и открыть ближайший снимок (G)",
+  "CLIP": "КЛИП",
+  "STILL": "КАДР",
+  "Live video stream from the camera": "Прямая видеотрансляция с камеры",
+  "A recorded video clip that loops, not a live stream": "Записанный видеоклип по кругу, а не прямая трансляция",
+  "A still image that refreshes every few seconds, not video": "Неподвижный снимок, обновляемый каждые несколько секунд, а не видео",
+  "The live stream is unavailable, so this is the refreshing still image": "Прямая трансляция недоступна, поэтому показан обновляемый снимок"
 }

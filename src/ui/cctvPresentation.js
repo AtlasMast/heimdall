@@ -240,6 +240,7 @@ export function _renderCctvState(state) {
   }
 
   this._syncCctvSourceBadge(activeCamera, enabled);
+  this._syncCctvFeedBadge(activeCamera, enabled);
   this._typeCctvSummary(
     state?.summary ||
       t('Enable CCTV to start camera-linked intelligence summaries.'),
