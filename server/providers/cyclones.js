@@ -268,7 +268,7 @@ export function cycloneProxy({
       redirect: 'error',
       headers: {
         Accept: 'application/geo+json,application/json',
-        'User-Agent': 'Gods Eye View (public NOAA weather context)',
+        'User-Agent': 'Heimdall (public NOAA weather context)',
       },
     });
     if (!response.ok) {
