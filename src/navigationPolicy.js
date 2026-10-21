@@ -19,6 +19,7 @@ const COCKPIT_REFUSALS = Object.freeze({
   camera: msg('Exit cockpit to fly to a camera'),
   location: msg('Exit cockpit to fly to a location'),
   photo: msg('Exit cockpit to fly to a photo'),
+  street: msg('Exit cockpit to jump to street level'),
   'shared view': msg('Exit cockpit to fly to a shared view'),
   target: msg('Exit cockpit to fly to a target'),
   vessel: msg('Exit cockpit to fly to a vessel'),

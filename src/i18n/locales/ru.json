@@ -2956,5 +2956,8 @@
   "USB work abandoned after a stalled transfer": "Работа с USB прервана: передача данных зависла",
   "SDR decoder did not start; receiver stopped": "Декодер SDR не запустился; приёмник остановлен",
   "SDR decoder stopped responding; receiver stopped": "Декодер SDR перестал отвечать; приёмник остановлен",
-  "SDR decoder fell behind; receiver stopped": "Декодер SDR не успевает; приёмник остановлен"
+  "SDR decoder fell behind; receiver stopped": "Декодер SDR не успевает; приёмник остановлен",
+  "Exit cockpit to jump to street level": "Выйдите из кабины, чтобы спуститься на уровень улицы",
+  "STREET JUMP": "НА УЛИЦУ",
+  "Fly down to street level at the middle of the view and open the nearest image there (G)": "Спуститься на уровень улицы в центре вида и открыть ближайший снимок (G)"
 }

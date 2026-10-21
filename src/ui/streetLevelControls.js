@@ -49,6 +49,7 @@ export class StreetLevelControls {
     this._explicitEnable = null;
     this._unsubscribeEnableRequests = null;
     this._resizeQueued = false;
+    this._jumping = false;
     this._wrapHome = null;
     this._expandReturnFocus = null;
     // Only the <body> children this class made inert are released again.
@@ -68,6 +69,7 @@ export class StreetLevelControls {
       controls: byId('sl-controls'),
       providerChips: byId('sl-provider-chips'),
       nearestBtn: byId('sl-nearest-btn'),
+      jumpBtn: byId('sl-jump-btn'),
       error: byId('sl-error'),
       errorText: byId('sl-error-text'),
       panoRow: byId('sl-pano-row'),
@@ -145,6 +147,7 @@ export class StreetLevelControls {
         aim: 'screen-centre',
       });
     });
+    this.listen(el.jumpBtn, 'click', () => this.jumpToStreet());
     this.listen(el.followBtn, 'click', () => {
       this.layer.setFollow?.(!(this._state?.street?.follow === true));
     });
@@ -222,6 +225,27 @@ export class StreetLevelControls {
         return;
       this.layer.resizeViewer?.();
     });
+  }
+
+  /**
+   * Street-level jump (button and the G shortcut): switch the layer on, fly
+   * down to the view centre and open the nearest image there. The panel
+   * opens only when an image does; otherwise a toast says why.
+   */
+  async jumpToStreet() {
+    if (this.destroyed || this._jumping) return false;
+    this._jumping = true;
+    try {
+      if (!(await this._ensureEnabled())) return false;
+      const opened = await this.layer.jumpToStreet?.();
+      if (!opened && !this.destroyed) {
+        const error = this.layer.getUIState?.()?.street?.error;
+        if (error) this.actions.showToast?.(translateKnown(error));
+      }
+      return opened === true;
+    } finally {
+      this._jumping = false;
+    }
   }
 
   async _ensureEnabled() {
@@ -650,7 +674,9 @@ export class StreetLevelControls {
           ? this._restoreWindow &&
             (preference === 'stored' || preference === 'share')
           : !this._explicitEnable;
-      if (!restoring) this.setCollapsed(false, { persist: false });
+      // A jump opens the panel only once it finds an image (below).
+      if (!restoring && !this._jumping)
+        this.setCollapsed(false, { persist: false });
       this._restoreWindow = false;
       this._explicitEnable = this._explicitEnable === null ? null : false;
     }

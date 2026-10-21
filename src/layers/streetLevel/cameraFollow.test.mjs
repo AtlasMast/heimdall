@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as Cesium from 'cesium';
 import { createCameraFollow } from './cameraFollow.js';
-import { FOLLOW_EYE_HEIGHT_M } from './policy.js';
+import {
+  FOLLOW_EYE_HEIGHT_M,
+  STREET_JUMP_PITCH_DEG,
+  STREET_JUMP_RANGE_M,
+} from './policy.js';
 
 /** Height (m) of a Cartesian above the WGS84 ellipsoid. */
 const heightOf = (cartesian) =>
@@ -262,4 +266,39 @@ test('destroying the follow part stops listening for handoffs', () => {
   assert.equal(nav.listeners.size, 1);
   follow.destroy();
   assert.equal(nav.listeners.size, 0);
+});
+
+test('the street-level jump lands beside the ground under the view centre', async () => {
+  const { follow, state, flights } = setup({ sampled: 121, dem: 117 });
+  state.viewer.camera.heading = 1.2;
+  const nav = navigationFor(state);
+  follow.attachNavigation(nav);
+  const landed = follow.flyDownTo({ lon: -97.74, lat: 30.27 });
+  assert.deepEqual(nav.runs, ['street']);
+  assert.equal(flights.length, 1);
+  const { sphere, options } = flights[0];
+  assert.ok(Math.abs(heightOf(sphere.center) - 123) < 0.01, 'on the street');
+  assert.equal(options.offset.range, STREET_JUMP_RANGE_M);
+  assert.ok(
+    Math.abs(options.offset.pitch - (STREET_JUMP_PITCH_DEG * Math.PI) / 180) <
+      1e-9,
+  );
+  assert.equal(options.offset.heading, 1.2, 'keeps the current heading');
+  state.viewer.camera.land();
+  assert.equal(await landed, true);
+});
+
+test('a refused or overtaken street-level jump resolves false', async () => {
+  const refused = setup({ sampled: 121, dem: 117 });
+  refused.follow.attachNavigation(
+    navigationFor(refused.state, { refuse: true }),
+  );
+  assert.equal(await refused.follow.flyDownTo({ lon: 0, lat: 0 }), false);
+  assert.equal(refused.flights.length, 0);
+
+  const overtaken = setup({ sampled: 121, dem: 117 });
+  const landed = overtaken.follow.flyDownTo({ lon: 0, lat: 0 });
+  overtaken.state.viewer.camera.cancelFlight();
+  assert.equal(await landed, false);
+  assert.equal(await overtaken.follow.flyDownTo({ lon: NaN, lat: 0 }), false);
 });
