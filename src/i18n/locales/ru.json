@@ -2965,5 +2965,9 @@
   "Live video stream from the camera": "Прямая видеотрансляция с камеры",
   "A recorded video clip that loops, not a live stream": "Записанный видеоклип по кругу, а не прямая трансляция",
   "A still image that refreshes every few seconds, not video": "Неподвижный снимок, обновляемый каждые несколько секунд, а не видео",
-  "The live stream is unavailable, so this is the refreshing still image": "Прямая трансляция недоступна, поэтому показан обновляемый снимок"
+  "The live stream is unavailable, so this is the refreshing still image": "Прямая трансляция недоступна, поэтому показан обновляемый снимок",
+  "LIVE ONLY ON": "ТОЛЬКО ЭФИР ВКЛ",
+  "LIVE ONLY OFF": "ТОЛЬКО ЭФИР ВЫКЛ",
+  "No live-video cameras loaded · turn LIVE ONLY off to see stills": "Камеры с прямым видео не загружены · выключите ТОЛЬКО ЭФИР, чтобы видеть снимки",
+  "Show only cameras that stream live video": "Показывать только камеры с прямой видеотрансляцией"
 }

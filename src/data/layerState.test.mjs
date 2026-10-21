@@ -442,6 +442,7 @@ test('v2 codec distinguishes absent from empty and keeps canonical deterministic
     coverageMode: 'on',
     showProjection: true,
     autoHop: false,
+    liveOnly: false,
   });
 
   const first = normalizeLayerState({
@@ -540,6 +541,7 @@ test('unknown and forbidden option fields are ignored while missing options use 
     coverageMode: 'viewshed',
     showProjection: true,
     autoHop: false,
+    liveOnly: false,
   });
   assert.deepEqual(decoded.options.flights, {
     models3d: true,
@@ -1229,6 +1231,7 @@ test('share payload wins over local, passive restore writes nothing, and explici
     coverageMode: 'on',
     showProjection: true,
     autoHop: false,
+    liveOnly: false,
   });
 
   manager.setLayerParams('cctv', { coverageMode: 'off' }, { origin: 'scene' });

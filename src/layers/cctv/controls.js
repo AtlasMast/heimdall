@@ -28,6 +28,7 @@ export function createControls({ state: layerState, services, parts, source }) {
      * @param {boolean} [params.showCoverage] - Back-compat coverage toggle (true→'on', false→'off').
      * @param {'off'|'on'|'viewshed'} [params.coverageMode] - Full coverage-mode API.
      * @param {boolean} [params.showProjection] - Toggle projection overlay visibility.
+     * @param {boolean} [params.liveOnly] - Show and cycle only live-video cameras.
      * @param {boolean} [params.autoHop] - Enable/disable auto-hop.
      * @param {number} [params.autoHopSec] - Auto-hop interval in seconds.
      * @param {string} [params.selectedCameraId] - Camera ID to activate.
@@ -58,6 +59,14 @@ export function createControls({ state: layerState, services, parts, source }) {
           if (active) parts.projection.ensureProjectionRuntime(active);
           parts.projection.startProjectionLoop();
         }
+      }
+      if (
+        typeof params.liveOnly === 'boolean' &&
+        params.liveOnly !== layerState._liveOnly
+      ) {
+        layerState._liveOnly = params.liveOnly;
+        parts.rendering.refreshHorizonCulling();
+        parts.cards.refreshAmbientCards();
       }
       if (typeof params.autoHop === 'boolean') {
         layerState._autoHop = params.autoHop;
@@ -180,6 +189,7 @@ export function createControls({ state: layerState, services, parts, source }) {
         showCoverage: layerState._coverageMode !== 'off',
         coverageMode: layerState._coverageMode,
         showProjection: layerState._showProjection,
+        liveOnly: layerState._liveOnly,
         calibrationMode: layerState._calibrationMode,
         autoHop: layerState._autoHop,
         autoHopSec: layerState._autoHopSec,
@@ -321,14 +331,15 @@ export function createControls({ state: layerState, services, parts, source }) {
      * @returns {string|null} The newly active camera ID, or null if catalog is empty.
      */
     cycleCamera(step = 1, options = {}) {
-      if (!layerState._records.length) return null;
+      const records = parts.model.eligibleRecords();
+      if (!records.length) return null;
       const current = parts.selection.getActiveRecord();
       const nextIdx = parts.navigation.cctvCycleIndex(
-        layerState._records.findIndex((record) => record === current),
+        records.findIndex((record) => record === current),
         step,
-        layerState._records.length,
+        records.length,
       );
-      const nextId = layerState._records[nextIdx].camera.id;
+      const nextId = records[nextIdx].camera.id;
       parts.selection.setActiveCamera(nextId);
       if (options.focus) {
         parts.navigation.focusCamera(nextId, options.durationSec || 1.8);

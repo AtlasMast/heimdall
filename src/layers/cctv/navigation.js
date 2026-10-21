@@ -14,12 +14,13 @@ export function createNavigation({
 
   function nearestCameraIdToViewer() {
     const carto = layerState._viewer?.camera?.positionCartographic;
-    if (!carto || !layerState._records.length) return null;
+    const records = parts.model.eligibleRecords();
+    if (!carto || !records.length) return null;
     const lat = Cesium.Math.toDegrees(carto.latitude);
     const lon = Cesium.Math.toDegrees(carto.longitude);
 
     let best = null;
-    for (const record of layerState._records) {
+    for (const record of records) {
       const distKm = parts.model.haversineKm(
         lat,
         lon,
@@ -93,11 +94,12 @@ export function createNavigation({
    */
 
   function maybeAutoHop(nowMs) {
+    const records = parts.model.eligibleRecords();
     if (
       !layerState._autoHop ||
       layerState._autoHopSuspended ||
       !layerState._enabled ||
-      layerState._records.length < 2
+      records.length < 2
     )
       return;
     if (nowMs - layerState._lastHopAt < layerState._autoHopSec * 1000) return;
@@ -119,13 +121,13 @@ export function createNavigation({
     }
 
     const nextIdx = cctvCycleIndex(
-      layerState._records.findIndex(
+      records.findIndex(
         (record) => record.camera.id === layerState._activeCameraId,
       ),
       1,
-      layerState._records.length,
+      records.length,
     );
-    parts.selection.setActiveCamera(layerState._records[nextIdx].camera.id);
+    parts.selection.setActiveCamera(records[nextIdx].camera.id);
     layerState._lastHopAt = nowMs;
   }
 

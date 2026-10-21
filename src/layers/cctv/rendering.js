@@ -146,7 +146,12 @@ export function createRendering({
     for (const record of layerState._records) {
       const bb = record.billboard;
       if (!bb) continue;
-      const visible = occluder.isPointVisible(bb.position);
+      // LIVE ONLY hides still-only cameras, except the one being watched.
+      const listed =
+        !layerState._liveOnly ||
+        parts.model.isLiveRecord(record) ||
+        record.camera.id === layerState._activeCameraId;
+      const visible = listed && occluder.isPointVisible(bb.position);
       if (bb.show !== visible) bb.show = visible;
     }
   }

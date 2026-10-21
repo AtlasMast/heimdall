@@ -121,6 +121,11 @@ export function _initCctvPanel() {
     this.actions.setParams({ showProjection: !current }, { origin: 'user' });
   });
 
+  this.listen(this._cctvLiveOnlyBtn, 'click', () => {
+    const current = !!this._cctvState?.liveOnly;
+    this.actions.setParams({ liveOnly: !current }, { origin: 'user' });
+  });
+
   this.listen(this._cctvAdjustBtn, 'click', () => {
     const current = !!this._cctvState?.calibrationMode;
     this.actions.setParams({ calibrationMode: !current }, { origin: 'user' });

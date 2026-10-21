@@ -2898,5 +2898,9 @@
   "Live video stream from the camera": "Vídeo en directo de la cámara",
   "A recorded video clip that loops, not a live stream": "Un clip de vídeo grabado que se repite, no una emisión en directo",
   "A still image that refreshes every few seconds, not video": "Una imagen fija que se actualiza cada pocos segundos, no vídeo",
-  "The live stream is unavailable, so this is the refreshing still image": "La emisión en directo no está disponible, así que se muestra la imagen fija que se actualiza"
+  "The live stream is unavailable, so this is the refreshing still image": "La emisión en directo no está disponible, así que se muestra la imagen fija que se actualiza",
+  "LIVE ONLY ON": "SOLO EN DIRECTO: SÍ",
+  "LIVE ONLY OFF": "SOLO EN DIRECTO: NO",
+  "No live-video cameras loaded · turn LIVE ONLY off to see stills": "No hay cámaras con vídeo en directo cargadas · desactiva SOLO EN DIRECTO para ver imágenes fijas",
+  "Show only cameras that stream live video": "Mostrar solo las cámaras que emiten vídeo en directo"
 }

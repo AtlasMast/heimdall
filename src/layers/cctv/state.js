@@ -34,6 +34,10 @@ export function createState({ services }) {
 
   layerState._showProjection = true;
 
+  // LIVE ONLY: hide and skip cameras without a live HLS stream (the active
+  // camera stays until the user moves on).
+  layerState._liveOnly = false;
+
   layerState._autoHop = false;
 
   // An explicit empty-space deselect keeps AUTO HOP configured but prevents its

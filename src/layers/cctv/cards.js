@@ -99,7 +99,7 @@ export function createCards({ state: layerState, services, parts, source }) {
 
     const candidates = [];
     const screenById = new Map();
-    for (const record of layerState._records) {
+    for (const record of parts.model.eligibleRecords()) {
       const id = record.camera.id;
       if (id === activeId || !record.position) continue;
       let inView = false;
