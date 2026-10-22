@@ -324,6 +324,7 @@ const OPTION_GROUPS = Object.freeze({
       osm: 'o',
       hybrid: 'h',
     }),
+    booleanOption('realOnly', 'd', false),
   ]),
   'weather-lightning': Object.freeze([
     enumOption('opacity', 'o', 'strong', ['light', 'strong'], {

@@ -3,11 +3,15 @@ import { flowBucket } from '../../data/trafficFlowStyle.js';
 import { trafficStyleProfile } from '../../data/trafficPresetStyle.js';
 import {
   HEAT_LINE_CAP,
+  HEAT_LINE_REAL_ONLY_CAP,
   HEAT_JAM_COLOR,
   HEAT_SLOW_COLOR,
+  HEAT_FREE_COLOR,
   HEAT_LINE_JAM_WIDTH,
   HEAT_JAM_BASE_ALPHA,
   HEAT_LINE_SLOW_WIDTH,
+  HEAT_LINE_FREE_WIDTH,
+  HEAT_SLOW_REAL_ONLY_ALPHA,
   TRAFFIC_TIMING_ENABLED,
 } from './policy.js';
 
@@ -34,7 +38,7 @@ export function createRendering({
       : roads;
   }
 
-  /** Remove both heat-line ground primitives from the scene. */
+  /** Remove the heat-line ground primitives from the scene. */
 
   function removeHeatLines() {
     if (layerState._heatJamPrim) {
@@ -49,6 +53,12 @@ export function createRendering({
       );
       layerState._heatSlowPrim = null;
     }
+    if (layerState._heatFreePrim) {
+      layerState._viewer?.scene.groundPrimitives.remove(
+        layerState._heatFreePrim,
+      );
+      layerState._heatFreePrim = null;
+    }
     layerState._heatLineCount = 0;
   }
 
@@ -60,6 +70,10 @@ export function createRendering({
    * batch pulses through one shared material. Capped at HEAT_LINE_CAP (jam
    * first, longest first); overflow is logged. No-op in sim mode, when the
    * heatline mode is off, or without ground-primitive support.
+   *
+   * The real-data-only view has no dots, so the lines carry the whole flow
+   * signal: free-flow roads get a green batch too, slow lines are opaque
+   * enough to read on their own, and the cap is raised.
    *
    * @param {Array} roads - Road objects visible in the current render.
    */
@@ -83,20 +97,28 @@ export function createRendering({
     }
     if (!layerState._heatSupported) return;
 
+    const realOnly = parts.style.realOnlyOn();
+    // The real-data-only view has nothing else to show, so its lines also
+    // drape onto terrain when no 3D tiles are loaded.
+    const classificationType = realOnly
+      ? Cesium.ClassificationType.BOTH
+      : Cesium.ClassificationType.CESIUM_3D_TILE;
     const candidates = [];
     for (const road of roads) {
       const flow = road.flow;
       if (!flow || flow.closure) continue;
       const bucket = flowBucket(flow.level);
-      if (bucket === 'free') continue;
+      if (bucket === 'free' && !realOnly) continue;
       let len = 0;
       for (const d of road.segmentDist) len += d;
       candidates.push({ road, bucket, len });
     }
+    const rank = { jam: 0, slow: 1, free: 2 };
     candidates.sort((a, b) =>
-      a.bucket === b.bucket ? b.len - a.len : a.bucket === 'jam' ? -1 : 1,
+      a.bucket === b.bucket ? b.len - a.len : rank[a.bucket] - rank[b.bucket],
     );
-    const kept = candidates.slice(0, HEAT_LINE_CAP);
+    const cap = realOnly ? HEAT_LINE_REAL_ONLY_CAP : HEAT_LINE_CAP;
+    const kept = candidates.slice(0, cap);
 
     const instancesFor = (bucket, width) =>
       kept
@@ -117,16 +139,22 @@ export function createRendering({
       layerState._presetDots === 'on' &&
       trafficStyleProfile(layerState._stylePreset) === 'mono';
     const jamLineColor = monoHeat ? Cesium.Color.WHITE : HEAT_JAM_COLOR;
+    const slowAlpha = realOnly
+      ? HEAT_SLOW_REAL_ONLY_ALPHA
+      : HEAT_SLOW_COLOR.alpha;
     const slowLineColor = monoHeat
-      ? new Cesium.Color(0.7, 0.7, 0.7, HEAT_SLOW_COLOR.alpha)
-      : HEAT_SLOW_COLOR;
+      ? new Cesium.Color(0.7, 0.7, 0.7, slowAlpha)
+      : HEAT_SLOW_COLOR.withAlpha(slowAlpha);
+    const freeLineColor = monoHeat
+      ? new Cesium.Color(0.4, 0.4, 0.4, HEAT_FREE_COLOR.alpha)
+      : HEAT_FREE_COLOR;
 
     const jamInstances = instancesFor('jam', HEAT_LINE_JAM_WIDTH);
     if (jamInstances.length) {
       layerState._heatJamPrim = layerState._viewer.scene.groundPrimitives.add(
         new Cesium.GroundPolylinePrimitive({
           geometryInstances: jamInstances,
-          classificationType: Cesium.ClassificationType.CESIUM_3D_TILE,
+          classificationType,
           appearance: new Cesium.PolylineMaterialAppearance({
             material: Cesium.Material.fromType('PolylineGlow', {
               color: jamLineColor.withAlpha(HEAT_JAM_BASE_ALPHA),
@@ -141,7 +169,7 @@ export function createRendering({
       layerState._heatSlowPrim = layerState._viewer.scene.groundPrimitives.add(
         new Cesium.GroundPolylinePrimitive({
           geometryInstances: slowInstances,
-          classificationType: Cesium.ClassificationType.CESIUM_3D_TILE,
+          classificationType,
           appearance: new Cesium.PolylineMaterialAppearance({
             material: Cesium.Material.fromType('Color', {
               color: slowLineColor,
@@ -151,10 +179,25 @@ export function createRendering({
       );
     }
 
+    const freeInstances = instancesFor('free', HEAT_LINE_FREE_WIDTH);
+    if (freeInstances.length) {
+      layerState._heatFreePrim = layerState._viewer.scene.groundPrimitives.add(
+        new Cesium.GroundPolylinePrimitive({
+          geometryInstances: freeInstances,
+          classificationType,
+          appearance: new Cesium.PolylineMaterialAppearance({
+            material: Cesium.Material.fromType('Color', {
+              color: freeLineColor,
+            }),
+          }),
+        }),
+      );
+    }
+
     layerState._heatLineCount = kept.length;
     if (candidates.length > kept.length) {
       console.log(
-        `[Data:Traffic] Heat-lines capped at ${HEAT_LINE_CAP} (${candidates.length} congested roads in view)`,
+        `[Data:Traffic] Heat-lines capped at ${cap} (${candidates.length} flow roads in view)`,
       );
     }
   }

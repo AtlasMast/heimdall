@@ -41,6 +41,7 @@ export function createAnimation({
     if (flow?.closure) return;
     if (layerState._liveMode && !flow && layerState._uncoveredMode === 'hide')
       return;
+    if (parts.style.realOnlyOn()) return;
 
     const count = Number.isFinite(budgetCount)
       ? Math.max(0, Math.floor(budgetCount))

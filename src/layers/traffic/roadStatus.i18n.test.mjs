@@ -65,16 +65,23 @@ for (const locale of ['es', 'ru']) {
   });
 }
 
-function roadChips(liveMode) {
+function rowControls(liveMode, realOnly = false) {
   const state = createState({ services: {} });
   state._liveMode = liveMode;
+  state._realOnly = realOnly;
   const controls = createControls({
     state,
     services: {},
     source: { getFlowSessionStats: () => ({}) },
     parts: {},
   });
-  return controls.methods.getRowControls().chips;
+  return controls.methods.getRowControls();
+}
+
+function roadChips(liveMode) {
+  return rowControls(liveMode).chips.filter((chip) =>
+    chip.id.startsWith('roads-'),
+  );
 }
 
 test('en: road-source chips keep their English labels and titles', () => {
@@ -117,6 +124,30 @@ for (const [locale, hybrid] of [
             chip.title,
             /roads only|roads, with|fills the rest|needs a/,
             `${locale}: ${chip.title}`,
+          );
+      }
+    } finally {
+      setLocale('en');
+    }
+  });
+}
+
+for (const locale of ['ru', 'es']) {
+  test(`${locale}: the Real data only chip and the traffic caption are translated`, () => {
+    setLocale(locale);
+    try {
+      for (const [live, realOnly] of [
+        [false, false],
+        [true, false],
+        [true, true],
+      ]) {
+        const controls = rowControls(live, realOnly);
+        const chip = controls.chips.find((entry) => entry.id === 'real-only');
+        for (const text of [chip.label, chip.title, controls.info])
+          assert.doesNotMatch(
+            text,
+            /Real data only|simulated|TomTom flow|are live/,
+            `${locale}: ${text}`,
           );
       }
     } finally {

@@ -49,6 +49,9 @@ export function createControls({ state: layerState, services, parts, source }) {
 
   const { getFlowSessionStats } = source;
 
+  /** Real data only applies with a TomTom key; keyless stays the simulation. */
+  const realOnlyOn = () => layerState._realOnly && layerState._liveMode;
+
   const methods = {
     id: 'traffic',
 
@@ -68,6 +71,8 @@ export function createControls({ state: layerState, services, parts, source }) {
      * @param {'tomtom'|'osm'|'hybrid'|null} [params.roadMode] - Road source; null = default.
      * @param {number}  [params.densityScale] - Dot density multiplier (clamped 0.2–2.5).
      * @param {number}  [params.speedScale]   - Dot speed multiplier (clamped 0.3–3.0).
+     * @param {boolean} [params.realOnly]     - Hide simulated vehicles; draw only
+     *   TomTom flow-colored roads (live mode only).
      * @param {{origin?:string}} [options] - Intent origin; restores never beat `?trafficRoads=`.
      */
     setParams(params = {}, { origin } = {}) {
@@ -117,15 +122,23 @@ export function createControls({ state: layerState, services, parts, source }) {
           dot.mps *= ratio;
         }
       }
+      const previousRealOnly = layerState._realOnly;
+      if (typeof params.realOnly === 'boolean')
+        layerState._realOnly = params.realOnly;
+      // Re-render in place: dot budgets drop to zero (or come back) through
+      // retention, and the flow lines are rebuilt for the new view.
       if (
-        layerState._densityScale !== previousDensity &&
+        (layerState._densityScale !== previousDensity ||
+          layerState._realOnly !== previousRealOnly) &&
         layerState._enabled &&
         layerState._roads.length
       )
         parts.rendering.renderRoadsForAltitude(
           layerState._roads,
           layerState._lastRenderAltitude,
-          'Density',
+          layerState._realOnly !== previousRealOnly
+            ? 'Real data only'
+            : 'Density',
         );
       // Live-mode treatment of roads TomTom has no flow data for:
       // 'sim' (default) keeps them as today's white ambient dots — colored =
@@ -161,6 +174,7 @@ export function createControls({ state: layerState, services, parts, source }) {
         roadMode: layerState._roadMode,
         densityScale: layerState._densityScale,
         speedScale: layerState._speedScale,
+        realOnly: layerState._realOnly,
         uncoveredRoads: layerState._uncoveredMode,
         jamViz: layerState._jamViz,
         presetDots: layerState._presetDots,
@@ -187,14 +201,35 @@ export function createControls({ state: layerState, services, parts, source }) {
       };
       // TomTom and OSM are provider names and stay as they are.
       const labels = { tomtom: 'TomTom', osm: 'OSM', hybrid: t('Hybrid') };
+      const realOnly = realOnlyOn();
       return {
-        chips: TRAFFIC_ROAD_MODES.map((mode) => ({
-          id: `roads-${mode}`,
-          label: labels[mode],
-          title: titles[mode],
-          active: mode === selected,
-          params: { roadMode: mode },
-        })),
+        chips: [
+          ...TRAFFIC_ROAD_MODES.map((mode) => ({
+            id: `roads-${mode}`,
+            label: labels[mode],
+            title: titles[mode],
+            active: mode === selected,
+            params: { roadMode: mode },
+          })),
+          {
+            id: 'real-only',
+            label: t('Real data only'),
+            title: live
+              ? t('Hide simulated vehicles; show only TomTom flow on roads')
+              : t('Needs a TomTom key: without one, all traffic is simulated'),
+            active: realOnly,
+            disabled: !live,
+            params: { realOnly: !layerState._realOnly },
+          },
+        ],
+        // The honest caption: what on screen is real and what is not.
+        info: !live
+          ? t('Vehicles are simulated. Add a TomTom key for live road flow.')
+          : realOnly
+            ? t('Simulated vehicles hidden. Road colors are live TomTom flow.')
+            : t(
+                'Vehicles are simulated. Only road flow speed and congestion are live.',
+              ),
       };
     },
 
@@ -306,6 +341,7 @@ export function createControls({ state: layerState, services, parts, source }) {
       const matched = free + slow + jam;
       const flowCoveragePct =
         matched + sim > 0 ? Math.round((100 * matched) / (matched + sim)) : 0;
+      const realOnly = realOnlyOn();
       const feed = parts.model.trafficFeedPresentation({
         liveMode: layerState._liveMode,
         fetching: loading,
@@ -313,6 +349,8 @@ export function createControls({ state: layerState, services, parts, source }) {
         coveragePct: flowCoveragePct,
         statusUnavailable: layerState._flowStatusUnavailable,
         roadSource: layerState._roadSource,
+        realOnly,
+        flowRoads: layerState._heatLineCount,
       });
       return {
         count: layerState._count,
@@ -332,6 +370,7 @@ export function createControls({ state: layerState, services, parts, source }) {
         detailError: layerState._detailError || null,
         detailLimited: Boolean(layerState._detailLimited),
         flowCoveragePct,
+        realOnly,
         tilesFetched: getFlowSessionStats().tilesFetched,
         ...(TRAFFIC_TIMING_ENABLED
           ? { trafficTiming: parts.timing.getTrafficTimingDiagnostics() }

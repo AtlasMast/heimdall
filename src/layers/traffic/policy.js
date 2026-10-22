@@ -122,6 +122,13 @@ export const FLOW_BUCKET_COLORS = {
 
 export const HEAT_LINE_CAP = 400;
 
+/**
+ * @const {number} Heat-line cap in the real-data-only view, which also draws
+ * free-flow roads and has no dots to pay for.
+ */
+
+export const HEAT_LINE_REAL_ONLY_CAP = 1200;
+
 /** @const {number} Px — glowing jam corridor line width. */
 
 export const HEAT_LINE_JAM_WIDTH = 9;
@@ -146,6 +153,19 @@ export const HEAT_JAM_COLOR = Cesium.Color.fromCssColorString('#e05252');
 
 export const HEAT_SLOW_COLOR =
   Cesium.Color.fromCssColorString('#f0b23e').withAlpha(0.2);
+
+/** @const {number} Px — flat free-flow line width (real-data-only view). */
+
+export const HEAT_LINE_FREE_WIDTH = 3;
+
+/** @const {Cesium.Color} Free-flow corridor color (bucket green). */
+
+export const HEAT_FREE_COLOR =
+  Cesium.Color.fromCssColorString('#2ecc71').withAlpha(0.6);
+
+/** @const {number} Slow corridor alpha in the real-data-only view. */
+
+export const HEAT_SLOW_REAL_ONLY_ALPHA = 0.75;
 
 /** @const {number} Far-distance scale floor for jam dots (shipped: 0.3). */
 
