@@ -3,6 +3,7 @@ import {
   _queueCctvFrame,
   _settleCctvFrame,
   _syncCctvSourceBadge,
+  _syncCctvFeedBadge,
 } from './cctvFrames.js';
 import {
   _activeCctvCameraId,
@@ -81,6 +82,9 @@ export class CctvControls {
   }
   _syncCctvSourceBadge(...args) {
     return _syncCctvSourceBadge.call(this, ...args);
+  }
+  _syncCctvFeedBadge(...args) {
+    return _syncCctvFeedBadge.call(this, ...args);
   }
   _activeCctvCameraId(...args) {
     return _activeCctvCameraId.call(this, ...args);

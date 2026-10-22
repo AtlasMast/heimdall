@@ -2889,5 +2889,18 @@
   "USB work abandoned after a stalled transfer": "Trabajo USB cancelado tras una transferencia bloqueada",
   "SDR decoder did not start; receiver stopped": "El decodificador SDR no arrancó; receptor detenido",
   "SDR decoder stopped responding; receiver stopped": "El decodificador SDR dejó de responder; receptor detenido",
-  "SDR decoder fell behind; receiver stopped": "El decodificador SDR se quedó atrás; receptor detenido"
+  "SDR decoder fell behind; receiver stopped": "El decodificador SDR se quedó atrás; receptor detenido",
+  "Exit cockpit to jump to street level": "Sal de la cabina para bajar a nivel de calle",
+  "STREET JUMP": "BAJAR A LA CALLE",
+  "Fly down to street level at the middle of the view and open the nearest image there (G)": "Baja a nivel de calle en el centro de la vista y abre la imagen más cercana (G)",
+  "CLIP": "CLIP",
+  "STILL": "IMAGEN FIJA",
+  "Live video stream from the camera": "Vídeo en directo de la cámara",
+  "A recorded video clip that loops, not a live stream": "Un clip de vídeo grabado que se repite, no una emisión en directo",
+  "A still image that refreshes every few seconds, not video": "Una imagen fija que se actualiza cada pocos segundos, no vídeo",
+  "The live stream is unavailable, so this is the refreshing still image": "La emisión en directo no está disponible, así que se muestra la imagen fija que se actualiza",
+  "LIVE ONLY ON": "SOLO EN DIRECTO: SÍ",
+  "LIVE ONLY OFF": "SOLO EN DIRECTO: NO",
+  "No live-video cameras loaded · turn LIVE ONLY off to see stills": "No hay cámaras con vídeo en directo cargadas · desactiva SOLO EN DIRECTO para ver imágenes fijas",
+  "Show only cameras that stream live video": "Mostrar solo las cámaras que emiten vídeo en directo"
 }

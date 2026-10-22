@@ -26,6 +26,7 @@
         <span class="cctv-frame-caption" aria-hidden="true" data-i18n>ACQUIRING FRAME</span>
         <img id="cctv-frame" alt="CCTV feed frame" />
         <canvas id="cctv-video" class="cctv-frame" hidden></canvas>
+        <span id="cctv-feed-badge" class="cctv-feed-badge" role="status" hidden data-i18n-runtime>STILL</span>
       </div>
       <div id="cctv-source-badge" role="status" aria-live="polite" data-i18n>SOURCE · UNKNOWN</div>
       <div id="cctv-meta" data-i18n>Enable CCTV to load camera intersections</div>
@@ -45,6 +46,7 @@
       </div>
       <div class="cctv-controls">
         <button id="cctv-projection-btn" class="scene-btn" data-i18n>PROJECTION ON</button>
+        <button id="cctv-live-only-btn" class="scene-btn" aria-pressed="false" title="Show only cameras that stream live video" data-i18n-title data-i18n>LIVE ONLY OFF</button>
         <span id="cctv-quality-chip" data-i18n-runtime>CAL · --</span>
       </div>
       <div class="cctv-calibration-block">
@@ -139,6 +141,7 @@
             <div class="sl-meta-row">
               <div id="sl-coverage-meta" class="sl-meta"></div>
               <button id="sl-nearest-btn" class="scene-btn sl-nearest-btn" type="button" hidden data-i18n-runtime>OPEN STREET VIEW</button>
+              <button id="sl-jump-btn" class="scene-btn sl-nearest-btn" type="button" title="Fly down to street level at the middle of the view and open the nearest image there (G)" data-i18n-title data-i18n>STREET JUMP</button>
             </div>
           </div>
         </div>

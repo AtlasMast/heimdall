@@ -187,3 +187,53 @@ export function _syncCctvSourceBadge(activeCamera, enabled) {
   this._cctvSourceBadge.textContent = `${kind} · ${status}`;
   this._cctvSourceBadge.dataset.frameState = 'ready';
 }
+
+/**
+ * What the panel is actually showing for a camera: 'live' (an HLS stream is
+ * playing), 'clip' (a finite, looping video file), 'still' (a snapshot that
+ * refreshes) or null (nothing selected). A stream that failed and fell back
+ * to its snapshot reads 'still', never 'live'.
+ * @param {object|null} camera The layer's public camera state.
+ * @returns {'live'|'clip'|'still'|null}
+ */
+export function cctvFeedMode(camera) {
+  if (!camera) return null;
+  if (!camera.isVideo) return 'still';
+  return String(camera.feedType || '').toLowerCase() === 'hls'
+    ? 'live'
+    : 'clip';
+}
+
+const FEED_MODE_LABELS = Object.freeze({
+  live: msg('LIVE'),
+  clip: msg('CLIP'),
+  still: msg('STILL'),
+});
+
+const FEED_MODE_TITLES = Object.freeze({
+  live: msg('Live video stream from the camera'),
+  clip: msg('A recorded video clip that loops, not a live stream'),
+  still: msg('A still image that refreshes every few seconds, not video'),
+  fallback: msg(
+    'The live stream is unavailable, so this is the refreshing still image',
+  ),
+});
+
+/** The LIVE / CLIP / STILL badge over the camera frame. */
+export function _syncCctvFeedBadge(activeCamera, enabled) {
+  const badge = this._cctvFeedBadge;
+  if (!badge) return;
+  const mode = enabled ? cctvFeedMode(activeCamera) : null;
+  badge.hidden = !mode;
+  if (!mode) {
+    badge.dataset.feedMode = '';
+    return;
+  }
+  // A camera that publishes a stream but is showing its still has fallen back.
+  const fellBack =
+    mode === 'still' &&
+    String(activeCamera.feedType || '').toLowerCase() === 'hls';
+  badge.dataset.feedMode = mode;
+  badge.textContent = t(FEED_MODE_LABELS[mode]);
+  badge.title = t(FEED_MODE_TITLES[fellBack ? 'fallback' : mode]);
+}

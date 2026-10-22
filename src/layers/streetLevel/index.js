@@ -759,6 +759,27 @@ export function createStreetLevelLayer({
       notify();
       return false;
     },
+    /**
+     * Street-level jump: fly down to the ground under the view centre, then
+     * open the nearest image of the lit provider there (which opens the
+     * panel). Resolves true when an image opened. The layer must be on for
+     * the lookup; the camera still lands when it is off.
+     */
+    async jumpToStreet() {
+      let point = screenCentreGround();
+      if (point === undefined) point = viewCentre(state.viewer);
+      if (!Number.isFinite(point?.lat) || !Number.isFinite(point?.lon)) {
+        abortNearest();
+        state.street.loading = false;
+        state.street.error = AIM_AT_GROUND_MESSAGE;
+        notify();
+        return false;
+      }
+      abortNearest();
+      const landed = await parts.follow.flyDownTo(point);
+      if (!landed || !state.enabled) return false;
+      return layer.openNearest(point, { frame: false });
+    },
     /** Close the image and deselect it everywhere on the map. */
     closeViewer() {
       abortNearest();

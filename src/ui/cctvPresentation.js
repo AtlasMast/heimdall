@@ -2,6 +2,21 @@ import { t, tn } from '../i18n/index.js';
 import { cctvSourceLabelText, cctvSourceMessageText } from './cctvFrames.js';
 
 import { createCctvVideoSurface } from './cctvVideo.js';
+/**
+ * The cameras LIVE ONLY lists: those with a live HLS stream, plus the active
+ * camera so the selection never vanishes from the picker.
+ * @param {Object[]} [cameras] Public camera states.
+ * @param {string} [activeId] Active camera id.
+ * @returns {Object[]}
+ */
+export function cctvLiveCameras(cameras = [], activeId = '') {
+  return (cameras || []).filter(
+    (camera) =>
+      String(camera.feedType || '').toLowerCase() === 'hls' ||
+      (activeId && camera.id === activeId),
+  );
+}
+
 export function _calBadgeLabel(badge) {
   switch (badge) {
     case 'calibrated':
@@ -25,10 +40,18 @@ export function _renderCctvState(state) {
     this._calibrationEdit?.(false);
   }
   this._cctvState = state || null;
-  const cameras = state?.cameras || [];
   const enabled = !!state?.enabled && !!this.actions.isEnabled();
   const activeId = state?.activeCameraId || '';
   const activeCamera = state?.activeCamera || null;
+  // LIVE ONLY lists the live-video cameras, plus the one being watched.
+  const liveOnly = !!state?.liveOnly;
+  const cameras = liveOnly
+    ? cctvLiveCameras(state?.cameras, activeId)
+    : state?.cameras || [];
+  // A watched still-only camera is listed but not something to cycle to.
+  const cyclable = liveOnly
+    ? cameras.filter((camera) => camera.id !== activeId).length
+    : cameras.length;
 
   // Auto-expand the panel when the active camera CHANGES to a new non-null
   // id while the layer is enabled. Covers click-on-globe, panel controls,
@@ -89,7 +112,16 @@ export function _renderCctvState(state) {
     this._cctvNextBtn,
   ]) {
     if (!btn) continue;
-    btn.disabled = !enabled || cameras.length === 0;
+    btn.disabled = !enabled || cyclable === 0;
+  }
+
+  if (this._cctvLiveOnlyBtn) {
+    this._cctvLiveOnlyBtn.classList.toggle('active', liveOnly);
+    this._cctvLiveOnlyBtn.setAttribute('aria-pressed', String(liveOnly));
+    this._cctvLiveOnlyBtn.textContent = liveOnly
+      ? t('LIVE ONLY ON')
+      : t('LIVE ONLY OFF');
+    this._cctvLiveOnlyBtn.disabled = !enabled;
   }
   if (this._cctvFocusBtn) {
     this._cctvFocusBtn.disabled = !enabled || cameras.length === 0 || !activeId;
@@ -177,6 +209,10 @@ export function _renderCctvState(state) {
           status: `${credit}${statusMsg}`,
         },
       );
+    } else if (liveOnly && cameras.length === 0) {
+      this._cctvMeta.textContent = t(
+        'No live-video cameras loaded · turn LIVE ONLY off to see stills',
+      );
     } else if (cameras.length > 0) {
       this._cctvMeta.textContent = enabled
         ? tn(
@@ -240,6 +276,7 @@ export function _renderCctvState(state) {
   }
 
   this._syncCctvSourceBadge(activeCamera, enabled);
+  this._syncCctvFeedBadge(activeCamera, enabled);
   this._typeCctvSummary(
     state?.summary ||
       t('Enable CCTV to start camera-linked intelligence summaries.'),

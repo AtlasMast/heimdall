@@ -97,6 +97,28 @@ export function createModel({ state: layerState, services, parts, source }) {
   }
 
   /**
+   * True when the camera publishes true live video (an HLS stream); a looping
+   * mp4/webm file is a recording, not live.
+   * @param {Object} record Camera record.
+   * @returns {boolean}
+   */
+
+  function isLiveRecord(record) {
+    return normalizeFeedType(record?.camera?.feedType) === 'hls';
+  }
+
+  /**
+   * The records PREV / NEXT / NEAREST / AUTO HOP and the ambient cards choose
+   * from: every camera, or only the live ones while LIVE ONLY is on.
+   * @returns {Object[]}
+   */
+
+  function eligibleRecords() {
+    const records = layerState._records || [];
+    return layerState._liveOnly ? records.filter(isLiveRecord) : records;
+  }
+
+  /**
    * Coerces a value to a finite number or returns the fallback.
    *
    * Absent, blank and boolean values return the fallback as well. The source
@@ -553,6 +575,8 @@ export function createModel({ state: layerState, services, parts, source }) {
     angularDeltaAbs,
     normalizeFeedType,
     isVideoFeedType,
+    isLiveRecord,
+    eligibleRecords,
     safeNumber,
     headingFromId,
     quantize,

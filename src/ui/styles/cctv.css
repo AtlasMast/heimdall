@@ -337,6 +337,48 @@ html:not([lang='en']) .cctv-controls .scene-btn {
   display: none;
 }
 
+/* LIVE / CLIP / STILL: what the frame above actually is, in its corner. */
+.cctv-feed-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  border: 1px solid rgba(157, 239, 255, 0.4);
+  border-radius: 3px;
+  background: rgba(4, 12, 18, 0.72);
+  color: #9defff;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 1.4px;
+  padding: 2px 6px;
+  pointer-events: auto;
+}
+
+.cctv-feed-badge[hidden] {
+  display: none;
+}
+
+.cctv-feed-badge[data-feed-mode='live'] {
+  color: #ff8a80;
+  border-color: rgba(255, 82, 82, 0.6);
+}
+
+.cctv-feed-badge[data-feed-mode='live']::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: #ff5252;
+  vertical-align: 1px;
+}
+
+.cctv-feed-badge[data-feed-mode='clip'] {
+  color: #ffe59b;
+  border-color: rgba(255, 205, 92, 0.5);
+}
+
 #cctv-meta {
   font-family: var(--font-mono);
   font-size: 9px;

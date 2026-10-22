@@ -1,5 +1,9 @@
 import * as Cesium from 'cesium';
-import { FOLLOW_EYE_HEIGHT_M } from './policy.js';
+import {
+  FOLLOW_EYE_HEIGHT_M,
+  STREET_JUMP_PITCH_DEG,
+  STREET_JUMP_RANGE_M,
+} from './policy.js';
 
 /** Plausible ellipsoidal land heights: Dead Sea to Everest, with geoid slack. */
 const SURFACE_MIN_M = -500;
@@ -26,7 +30,7 @@ export function createCameraFollow({ state, parts }) {
   let claiming = false;
 
   /** Take the camera for `move`; false when the application refuses. */
-  function claim(move) {
+  function claim(move, noun = 'photo') {
     if (!navigation?.run) {
       move();
       return true;
@@ -34,7 +38,7 @@ export function createCameraFollow({ state, parts }) {
     claiming = true;
     try {
       return (
-        navigation.run('photo', () => {
+        navigation.run(noun, () => {
           move();
           return true;
         }) === true
@@ -176,6 +180,45 @@ export function createCameraFollow({ state, parts }) {
     state.viewer?.camera?.cancelFlight?.();
   }
 
+  /**
+   * Street-level jump: fly straight down onto `point` ({lon, lat}), keeping
+   * the current heading, and resolve true once landed. False when the
+   * application refuses the camera (cockpit) or another flight cancels ours.
+   */
+  function flyDownTo(point) {
+    const viewer = state.viewer;
+    if (!viewer || !Number.isFinite(point?.lon) || !Number.isFinite(point?.lat))
+      return Promise.resolve(false);
+    return new Promise((resolve) => {
+      const ground = groundHeightAt(point.lon, point.lat, 0);
+      const granted = claim(() => {
+        // Following would pull the camera back to the old photo's pose.
+        state.street.follow = false;
+        cancelFraming();
+        viewer.camera.flyToBoundingSphere(
+          new Cesium.BoundingSphere(
+            Cesium.Cartesian3.fromDegrees(point.lon, point.lat, ground + 2),
+            4,
+          ),
+          {
+            offset: new Cesium.HeadingPitchRange(
+              viewer.camera.heading ?? 0,
+              Cesium.Math.toRadians(STREET_JUMP_PITCH_DEG),
+              STREET_JUMP_RANGE_M,
+            ),
+            duration: 2,
+            complete: () => {
+              requestRender();
+              resolve(true);
+            },
+            cancel: () => resolve(false),
+          },
+        );
+      }, 'street');
+      if (!granted) resolve(false);
+    });
+  }
+
   function setFollow(enabled) {
     const wanted = enabled === true && state.street.followAvailable;
     if (wanted && !state.street.follow) {
@@ -202,6 +245,7 @@ export function createCameraFollow({ state, parts }) {
     beginFraming,
     lookAtPosition,
     cancelFraming,
+    flyDownTo,
     setFollow,
     attachNavigation,
     destroy,

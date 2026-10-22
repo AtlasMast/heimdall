@@ -218,3 +218,34 @@ test('disposing during camera enable prevents the delayed focus and future click
   assert.equal(enables, 1);
   assert.equal(focuses, 0);
 });
+
+test('the feed badge reads LIVE only for a playing stream, and STILL once it falls back', (t) => {
+  const { controls } = fixture(t);
+  const badge = { dataset: {}, hidden: true, textContent: '', title: '' };
+  controls._cctvFeedBadge = badge;
+  const hls = { feedType: 'hls', isVideo: true };
+
+  controls._syncCctvFeedBadge(hls, true);
+  assert.equal(badge.hidden, false);
+  assert.equal(badge.dataset.feedMode, 'live');
+  assert.equal(badge.textContent, 'LIVE');
+
+  // The stream failed: the layer reports the snapshot it fell back to.
+  controls._syncCctvFeedBadge({ ...hls, isVideo: false }, true);
+  assert.equal(badge.dataset.feedMode, 'still');
+  assert.equal(badge.textContent, 'STILL');
+  assert.match(badge.title, /live stream is unavailable/);
+
+  controls._syncCctvFeedBadge({ feedType: 'image', isVideo: false }, true);
+  assert.equal(badge.textContent, 'STILL');
+  assert.match(badge.title, /not video/);
+
+  controls._syncCctvFeedBadge({ feedType: 'mp4', isVideo: true }, true);
+  assert.equal(badge.dataset.feedMode, 'clip');
+  assert.equal(badge.textContent, 'CLIP');
+
+  controls._syncCctvFeedBadge(hls, false);
+  assert.equal(badge.hidden, true, 'nothing to label with the layer off');
+  controls._syncCctvFeedBadge(null, true);
+  assert.equal(badge.hidden, true, 'or with no camera selected');
+});

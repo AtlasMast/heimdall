@@ -198,6 +198,7 @@ export function createPresentation({
       showCoverage: layerState._coverageMode !== 'off',
       coverageMode: layerState._coverageMode,
       showProjection: layerState._showProjection,
+      liveOnly: layerState._liveOnly,
       calibrationMode: layerState._calibrationMode,
       autoHop: layerState._autoHop,
       autoHopSuspended: layerState._autoHopSuspended,

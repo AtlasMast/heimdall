@@ -43,6 +43,14 @@ export const FOLLOW_MAP_STACK_ID = 'photoreal';
 /** Eye height above the sampled ground when the globe camera follows the viewer. */
 export const FOLLOW_EYE_HEIGHT_M = 2.4;
 
+/**
+ * Street-level jump: the camera lands this far (m) from the ground point under
+ * the view centre, pitched this far down, so the street fills the view and a
+ * ground click is already in range.
+ */
+export const STREET_JUMP_RANGE_M = 120;
+export const STREET_JUMP_PITCH_DEG = -25;
+
 /** Above this, a ground click is a misclick, not a street. */
 export const GROUND_CLICK_MAX_HEIGHT_M = 3_000;
 

@@ -411,6 +411,7 @@ const OPTION_GROUPS = Object.freeze({
     }),
     booleanOption('showProjection', 'p', true),
     booleanOption('autoHop', 'a', false),
+    booleanOption('liveOnly', 'l', false),
   ]),
   'recent-imagery': Object.freeze([
     // Box edges in degrees × 100000; latitudes stop at the Web-Mercator limit.

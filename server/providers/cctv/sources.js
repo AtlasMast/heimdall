@@ -5,6 +5,8 @@ import {
   DEFAULT_AUSTIN_MAX_SOURCES,
   AUSTIN_DOWNTOWN,
   CALTRANS_CCTV_URL,
+  CALTRANS_VIDEO_ORIGIN,
+  CALTRANS_VIDEO_PATH,
   DEFAULT_CALTRANS_DISTRICTS,
   DEFAULT_CALTRANS_MAX_SOURCES,
   CALTRANS_ANCHORS,
@@ -232,6 +234,34 @@ export async function loadAustinSourcesFromOpenData() {
 }
 
 /**
+ * The live HLS manifest a Caltrans camera publishes, or '' when it has none
+ * or it is not on the agency's own video host. Only that exact manifest path
+ * is registered (no query, no credentials), so the HLS relay never fetches
+ * anything a catalog row could steer. CCTV_CALTRANS_VIDEO=0 keeps stills only.
+ * @param {object} imageData The row's `cctv.imageData`.
+ * @returns {string}
+ */
+export function caltransVideoUrl(imageData) {
+  if (String(process.env.CCTV_CALTRANS_VIDEO || '1').trim() === '0') return '';
+  let stream;
+  try {
+    stream = new URL(String(imageData?.streamingVideoURL || '').trim());
+  } catch {
+    return '';
+  }
+  if (
+    stream.origin !== CALTRANS_VIDEO_ORIGIN ||
+    stream.username ||
+    stream.password ||
+    stream.search ||
+    stream.hash ||
+    !CALTRANS_VIDEO_PATH.test(stream.pathname)
+  )
+    return '';
+  return `${stream.origin}${stream.pathname}`;
+}
+
+/**
  * Fetch Caltrans CCTV cameras for the configured districts (CCTV_CALTRANS_DISTRICTS,
  * comma-separated 1..12; empty string disables the pack). One official JSON feed per
  * district, identical schema statewide; keyless. Only inService cameras with finite
@@ -285,6 +315,8 @@ export async function loadCaltransSourcesFromOpenData() {
       const imageUrl = String(cctv.imageData?.static?.currentImageURL || '');
       // Official-host pin (see JSDoc). Also drops records with no still image.
       if (!imageUrl.startsWith('https://cwwp2.dot.ca.gov/')) continue;
+      // Live video where the camera streams; the still stays the snapshot.
+      const videoUrl = caltransVideoUrl(cctv.imageData);
 
       const locationName = String(loc.locationName || '').trim();
       // Leading token of locationName is the stable camera code ("TV102 -- I-580 : …").
@@ -330,8 +362,8 @@ export async function loadCaltransSourcesFromOpenData() {
             ? Math.max(-100, Math.min(4000, ft * 0.3048))
             : 150;
         })(),
-        feedType: 'image',
-        url: imageUrl,
+        feedType: videoUrl ? 'hls' : 'image',
+        url: videoUrl || imageUrl,
         snapshotUrl: imageUrl,
         sourceKind: 'caltrans-open-data',
         license: 'Public Caltrans highway camera frame',

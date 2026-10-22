@@ -496,7 +496,13 @@ export function createGeometry({ state: layerState, services, parts, source }) {
     // invent an arbitrary catalog-order cohort.
     if (!activeRecord) return new Set();
 
-    const ranked = layerState._records.map((record) => {
+    // LIVE ONLY: neighbours without live video draw no coverage either.
+    const candidates = parts.model.eligibleRecords();
+    const ranked = (
+      candidates.includes(activeRecord)
+        ? candidates
+        : [activeRecord, ...candidates]
+    ).map((record) => {
       if (record === activeRecord) {
         return { record, distKm: -1 };
       }

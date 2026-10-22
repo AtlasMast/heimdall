@@ -767,6 +767,57 @@ test('the button’s “centre of the view” is the ground under the middle of 
   assert.ok(Math.abs(lookups[0].lon - -121.4937) < 1e-9);
 });
 
+test('the street-level jump flies down to the view centre, then looks for imagery there', async (t) => {
+  const { createStreetLevelLayer: create } = await import('./index.js');
+  const scenePick = await import('../../data/scenePick.js');
+  const lookups = [];
+  const provider = fakeProvider({
+    nearestImage: async (point) => {
+      lookups.push(point);
+      return null;
+    },
+  });
+  const saved = globalThis.document;
+  const drawing = new Proxy({}, { get: () => () => ({ addColorStop() {} }) });
+  globalThis.document = Object.assign(new EventTarget(), {
+    createElement: () => ({ getContext: () => drawing }),
+  });
+  const viewer = fakeViewer();
+  const centre = Cesium.Cartesian3.fromDegrees(-121.4937, 38.5799, 0);
+  Object.assign(viewer.scene, {
+    pickPositionSupported: true,
+    pickPosition: (at) => (at.x === 500 && at.y === 300 ? centre : undefined),
+  });
+  viewer.scene.canvas.clientWidth = 1000;
+  viewer.scene.canvas.clientHeight = 600;
+  viewer.camera.heading = 0;
+  let landing = null;
+  const fly = viewer.camera.flyToBoundingSphere;
+  viewer.camera.flyToBoundingSphere = (sphere, options) => {
+    fly(sphere, options);
+    landing = { sphere, options };
+  };
+  const layer = create({ providers: [provider], services: { scenePick } });
+  layer.init(viewer);
+  layer.enable(viewer);
+  t.after(() => {
+    layer.destroy();
+    globalThis.document = saved;
+  });
+  const jump = layer.jumpToStreet();
+  await settle();
+  assert.ok(landing, 'the camera flies first');
+  assert.deepEqual(lookups, [], 'and looks for imagery only once it lands');
+  const target = Cesium.Cartographic.fromCartesian(landing.sphere.center);
+  assert.ok(Math.abs(Cesium.Math.toDegrees(target.latitude) - 38.5799) < 1e-6);
+  landing.options.complete();
+  assert.equal(await jump, false, 'no imagery there');
+  assert.equal(lookups.length, 1);
+  assert.ok(Math.abs(lookups[0].lat - 38.5799) < 1e-9);
+  assert.ok(Math.abs(lookups[0].lon - -121.4937) < 1e-9);
+  assert.match(layer.getUIState().street.error, /No street-level imagery/);
+});
+
 test('the button aimed at the sky opens nothing, and says to aim at a street', async (t) => {
   const { createStreetLevelLayer: create } = await import('./index.js');
   const scenePick = await import('../../data/scenePick.js');

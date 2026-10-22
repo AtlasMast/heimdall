@@ -14,12 +14,27 @@ export function createNavigation({
 
   function nearestCameraIdToViewer() {
     const carto = layerState._viewer?.camera?.positionCartographic;
-    if (!carto || !layerState._records.length) return null;
-    const lat = Cesium.Math.toDegrees(carto.latitude);
-    const lon = Cesium.Math.toDegrees(carto.longitude);
+    if (!carto) return null;
+    return nearestEligibleCameraId(
+      Cesium.Math.toDegrees(carto.latitude),
+      Cesium.Math.toDegrees(carto.longitude),
+    );
+  }
+
+  /**
+   * The eligible camera (live only, while LIVE ONLY is on) closest to a point.
+   * @param {number} lat
+   * @param {number} lon
+   * @returns {string|null}
+   */
+
+  function nearestEligibleCameraId(lat, lon) {
+    const records = parts.model.eligibleRecords();
+    if (!records.length || !Number.isFinite(lat) || !Number.isFinite(lon))
+      return null;
 
     let best = null;
-    for (const record of layerState._records) {
+    for (const record of records) {
       const distKm = parts.model.haversineKm(
         lat,
         lon,
@@ -93,11 +108,12 @@ export function createNavigation({
    */
 
   function maybeAutoHop(nowMs) {
+    const records = parts.model.eligibleRecords();
     if (
       !layerState._autoHop ||
       layerState._autoHopSuspended ||
       !layerState._enabled ||
-      layerState._records.length < 2
+      records.length < 2
     )
       return;
     if (nowMs - layerState._lastHopAt < layerState._autoHopSec * 1000) return;
@@ -119,13 +135,13 @@ export function createNavigation({
     }
 
     const nextIdx = cctvCycleIndex(
-      layerState._records.findIndex(
+      records.findIndex(
         (record) => record.camera.id === layerState._activeCameraId,
       ),
       1,
-      layerState._records.length,
+      records.length,
     );
-    parts.selection.setActiveCamera(layerState._records[nextIdx].camera.id);
+    parts.selection.setActiveCamera(records[nextIdx].camera.id);
     layerState._lastHopAt = nowMs;
   }
 
@@ -149,6 +165,7 @@ export function createNavigation({
   }
   return {
     nearestCameraIdToViewer,
+    nearestEligibleCameraId,
     focusCctvRecord,
     focusCamera,
     maybeAutoHop,
