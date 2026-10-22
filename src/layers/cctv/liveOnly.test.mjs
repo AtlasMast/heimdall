@@ -115,3 +115,48 @@ test('the panel lists live cameras plus the camera being watched', () => {
   );
   assert.deepEqual(cctvLiveCameras(undefined), []);
 });
+
+test('turning LIVE ONLY on while watching a still moves to the nearest live camera', () => {
+  const at = (id, feedType, lat) => ({ camera: { id, feedType, lat, lon: 0 } });
+  const records = [
+    at('still', 'image', 10),
+    at('live-far', 'hls', 30),
+    at('live-near', 'hls', 11),
+  ];
+  const { state, methods, parts } = layer(records);
+  parts.rendering = {
+    refreshHorizonCulling() {},
+    refreshCoverageStyles() {},
+  };
+  parts.cards = { refreshAmbientCards() {} };
+  parts.presentation = { notifyListeners() {} };
+  const focused = [];
+  parts.navigation.focusCamera = (id) => focused.push(id);
+
+  state._activeCameraId = 'still';
+  methods.setParams({ liveOnly: true });
+  assert.equal(state._activeCameraId, 'live-near');
+  assert.deepEqual(focused, ['live-near'], 'and flies to it');
+
+  // Already on a live camera: nothing moves.
+  methods.setParams({ liveOnly: false });
+  methods.setParams({ liveOnly: true });
+  assert.equal(state._activeCameraId, 'live-near');
+  assert.equal(focused.length, 1);
+});
+
+test('LIVE ONLY with no camera selected, or no live cameras, selects nothing', () => {
+  const { state, methods, parts } = layer([record('a', 'image')]);
+  parts.rendering = {
+    refreshHorizonCulling() {},
+    refreshCoverageStyles() {},
+  };
+  parts.cards = { refreshAmbientCards() {} };
+  parts.presentation = { notifyListeners() {} };
+  methods.setParams({ liveOnly: true });
+  assert.equal(state._activeCameraId, null);
+  methods.setParams({ liveOnly: false });
+  state._activeCameraId = 'a';
+  methods.setParams({ liveOnly: true });
+  assert.equal(state._activeCameraId, 'a', 'the still stays: nothing live');
+});

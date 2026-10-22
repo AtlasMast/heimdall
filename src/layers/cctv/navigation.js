@@ -14,10 +14,24 @@ export function createNavigation({
 
   function nearestCameraIdToViewer() {
     const carto = layerState._viewer?.camera?.positionCartographic;
+    if (!carto) return null;
+    return nearestEligibleCameraId(
+      Cesium.Math.toDegrees(carto.latitude),
+      Cesium.Math.toDegrees(carto.longitude),
+    );
+  }
+
+  /**
+   * The eligible camera (live only, while LIVE ONLY is on) closest to a point.
+   * @param {number} lat
+   * @param {number} lon
+   * @returns {string|null}
+   */
+
+  function nearestEligibleCameraId(lat, lon) {
     const records = parts.model.eligibleRecords();
-    if (!carto || !records.length) return null;
-    const lat = Cesium.Math.toDegrees(carto.latitude);
-    const lon = Cesium.Math.toDegrees(carto.longitude);
+    if (!records.length || !Number.isFinite(lat) || !Number.isFinite(lon))
+      return null;
 
     let best = null;
     for (const record of records) {
@@ -151,6 +165,7 @@ export function createNavigation({
   }
   return {
     nearestCameraIdToViewer,
+    nearestEligibleCameraId,
     focusCctvRecord,
     focusCamera,
     maybeAutoHop,

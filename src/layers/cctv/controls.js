@@ -65,6 +65,24 @@ export function createControls({ state: layerState, services, parts, source }) {
         params.liveOnly !== layerState._liveOnly
       ) {
         layerState._liveOnly = params.liveOnly;
+        // Switching LIVE ONLY on while watching a still moves to the live
+        // camera nearest it, so the toggle visibly takes effect.
+        const active = parts.selection.getActiveRecord();
+        if (
+          layerState._liveOnly &&
+          active &&
+          layerState._activeCameraId &&
+          !parts.model.isLiveRecord(active)
+        ) {
+          const liveId = parts.navigation.nearestEligibleCameraId(
+            active.camera.lat,
+            active.camera.lon,
+          );
+          if (liveId) {
+            parts.selection.setActiveCamera(liveId);
+            parts.navigation.focusCamera(liveId, 1.8);
+          }
+        }
         parts.rendering.refreshHorizonCulling();
         parts.cards.refreshAmbientCards();
       }
