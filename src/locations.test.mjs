@@ -15,6 +15,7 @@ import {
   PLACE_ANCHOR_OFFSET_RATIO,
   flyToGlobeView,
   flyToPresetLocation,
+  flyToSavedView,
   geocodeNavigationMode,
   regionFramingPlan,
   REGION_SWATH_SPAN_KM,
@@ -659,4 +660,32 @@ test('a precise search without an outline frames against the resolved ground, no
   assert.ok(Math.abs(target.height - (171 + 30)) < 0.5, `target ${target.height}`);
   const eye = target.height + flight.offset.range * Math.sin(-flight.offset.pitch);
   assert.ok(eye > 171 + 100, `eye ${eye} must clear the 171 m surface`);
+});
+
+test('flyToSavedView lands on the exact saved pose and reports its hooks', () => {
+  const viewer = stubViewer();
+  const views = [];
+  viewer.camera.setView = (view) => views.push(view);
+  const fired = [];
+  const result = flyToSavedView(
+    viewer,
+    { lat: 35.6595, lon: 139.7005, alt: 420, heading: 30, pitch: -20, roll: 0 },
+    {
+      onStart: () => fired.push('start'),
+      onComplete: () => fired.push('complete'),
+      onCancel: () => fired.push('cancel'),
+    },
+  );
+  const flight = viewer.flights[0];
+  const expected = Cesium.Cartesian3.fromDegrees(139.7005, 35.6595, 420);
+  assert.ok(Cesium.Cartesian3.equalsEpsilon(flight.destination, expected, 1e-6));
+  assert.ok(Cesium.Cartesian3.equalsEpsilon(result.targetPosition, expected, 1e-6));
+  assert.ok(Math.abs(flight.orientation.heading - Cesium.Math.toRadians(30)) < 1e-9);
+  assert.ok(Math.abs(flight.orientation.pitch - Cesium.Math.toRadians(-20)) < 1e-9);
+  assert.equal(flight.duration, 3);
+  flight.complete();
+  flight.cancel();
+  assert.deepEqual(fired, ['start', 'complete', 'cancel']);
+  assert.equal(views.length, 1, 'arrival re-applies the exact pose');
+  assert.equal(flyToSavedView(viewer, { lat: NaN, lon: 1 }), null);
 });

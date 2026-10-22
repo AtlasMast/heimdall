@@ -290,6 +290,35 @@ export class LayerStateCoordinator {
     });
   }
 
+  /**
+   * Apply a saved layer state (a Favorite) as the user's own choice: it
+   * becomes the durable state, is persisted like any explicit toggle, and the
+   * layers are brought in line through the same restore path a reload uses.
+   * Saved Follow targets are dropped, since a flight or satellite id from an
+   * old view is not something to re-acquire on a jump.
+   */
+  applyLayerState(state) {
+    if (this._destroyed) return Promise.resolve([]);
+    const candidate = state ? normalizeLayerState(state) : null;
+    if (!candidate) return Promise.resolve([]);
+    for (const layerId of Object.keys(TRACKING_OPTION_KEY_BY_LAYER)) {
+      const ownerId = REGISTRY_BY_ID.get(layerId)?.optionOwner;
+      if (ownerId && candidate.options?.[ownerId]) {
+        candidate.options[ownerId] = {
+          ...candidate.options[ownerId],
+          [TRACKING_OPTION_KEY_BY_LAYER[layerId]]: null,
+        };
+      }
+    }
+    this.cancelPendingRestores('superseded-by-favorite');
+    this._source = 'local';
+    this._commitExplicit(candidate);
+    this.restorePromise = this._restoreSelectedState(
+      LAYER_RESTORE_ORIGINS.local,
+    );
+    return this.restorePromise;
+  }
+
   _commitExplicit(candidate) {
     this._durableState = normalizeLayerState(candidate);
     const serialized = serializeStoredLayerState(this._durableState);

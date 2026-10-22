@@ -64,6 +64,63 @@ export function flyToGlobeView(viewer, options = {}) {
 }
 
 /**
+ * Fly to an exact saved camera pose (a Favorite), landing on the same eye
+ * position and orientation the share link recorded.
+ * @param {Cesium.Viewer} viewer
+ * @param {{lat:number, lon:number, alt:number, heading:number, pitch:number, roll:number}} view
+ * @param {{duration?: number, onStart?: Function, onComplete?: Function, onCancel?: Function}} options
+ * @returns {{targetPosition: Cesium.Cartesian3}|null}
+ */
+export function flyToSavedView(viewer, view, options = {}) {
+  if (!Number.isFinite(view?.lat) || !Number.isFinite(view?.lon)) return null;
+  cancelCameraArrival(viewer);
+  arrivalGeneration++;
+  const destination = Cesium.Cartesian3.fromDegrees(
+    view.lon,
+    view.lat,
+    Number.isFinite(view.alt) ? view.alt : 800,
+  );
+  const orientation = {
+    heading: Cesium.Math.toRadians(view.heading || 0),
+    pitch: Cesium.Math.toRadians(
+      Number.isFinite(view.pitch) ? view.pitch : -35,
+    ),
+    roll: Cesium.Math.toRadians(view.roll || 0),
+  };
+  try {
+    options.onStart?.();
+  } catch {
+    /* no-op */
+  }
+  viewer.camera.cancelFlight();
+  viewer.camera.flyTo({
+    destination,
+    orientation,
+    duration: finitePositive(options.duration) || 3.0,
+    easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
+    endTransform: Cesium.Matrix4.IDENTITY,
+    complete: () => {
+      // Same settle as share restore: a flight can end a hair off its pose.
+      viewer.camera.setView({ destination, orientation });
+      viewer.scene?.requestRender?.();
+      try {
+        options.onComplete?.();
+      } catch {
+        /* no-op */
+      }
+    },
+    cancel: () => {
+      try {
+        options.onCancel?.();
+      } catch {
+        /* no-op */
+      }
+    },
+  });
+  return { targetPosition: destination };
+}
+
+/**
  * Flat list of locations for backward compatibility.
  */
 export const LOCATIONS = Object.entries(CITY_POIS).map(([id, city]) => ({

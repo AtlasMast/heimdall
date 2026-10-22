@@ -522,6 +522,11 @@ export class ShareLinkManager {
     }
   }
 
+  /** The current view as a share hash (no '#', no copy timestamp), or null. */
+  snapshotHash() {
+    return this._buildHashParams()?.toString() || null;
+  }
+
   _scheduleUpdate() {
     if (this._destroyed || this._initialRestorePending) return;
     clearTimeout(this._debounceTimer);
