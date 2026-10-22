@@ -2902,5 +2902,19 @@
   "LIVE ONLY ON": "SOLO EN DIRECTO: SÍ",
   "LIVE ONLY OFF": "SOLO EN DIRECTO: NO",
   "No live-video cameras loaded · turn LIVE ONLY off to see stills": "No hay cámaras con vídeo en directo cargadas · desactiva SOLO EN DIRECTO para ver imágenes fijas",
-  "Show only cameras that stream live video": "Mostrar solo las cámaras que emiten vídeo en directo"
+  "Show only cameras that stream live video": "Mostrar solo las cámaras que emiten vídeo en directo",
+  "Real data only": "Solo datos reales",
+  "Hide simulated vehicles; show only TomTom flow on roads": "Ocultar los vehículos simulados; mostrar solo el flujo de TomTom en las vías",
+  "Needs a TomTom key: without one, all traffic is simulated": "Necesita una clave de TomTom: sin ella, todo el tráfico es simulado",
+  "Vehicles are simulated. Add a TomTom key for live road flow.": "Los vehículos son simulados. Añade una clave de TomTom para ver el flujo en directo.",
+  "Simulated vehicles hidden. Road colors are live TomTom flow.": "Vehículos simulados ocultos. Los colores de las vías son el flujo en directo de TomTom.",
+  "Vehicles are simulated. Only road flow speed and congestion are live.": "Los vehículos son simulados. Solo la velocidad del flujo y la congestión son en directo.",
+  "NO LIVE FLOW — {reason}": "SIN FLUJO EN DIRECTO — {reason}",
+  "Syncing flow · Real data only": "Sincronizando flujo · Solo datos reales",
+  "LIVE · Real data only · {count} flow roads": {
+    "one": "EN VIVO · Solo datos reales · {count} vía con flujo",
+    "many": "EN VIVO · Solo datos reales · {count} de vías con flujo",
+    "other": "EN VIVO · Solo datos reales · {count} vías con flujo"
+  },
+  "LIVE · Real data only · No flow roads in view": "EN VIVO · Solo datos reales · Sin vías con flujo a la vista"
 }

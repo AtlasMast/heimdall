@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import { roadSurfaceChunks } from './surface.js';
-import { t, translateKnown } from '../../i18n/index.js';
+import { t, tn, translateKnown } from '../../i18n/index.js';
 import {
   flowDensityMult,
   flowBucket,
@@ -112,6 +112,8 @@ export function createModel({ state: layerState, services, parts, source }) {
     // Strict data-integrity view: uncovered roads spawn nothing when hidden.
     if (layerState._liveMode && !flow && layerState._uncoveredMode === 'hide')
       return 0;
+    // Real data only: vehicles are simulated, so none are drawn.
+    if (parts.style.realOnlyOn()) return 0;
 
     const lengthM = estimateRoadLengthDeg(road.coords);
 
@@ -242,11 +244,21 @@ export function createModel({ state: layerState, services, parts, source }) {
     coveragePct = 0,
     statusUnavailable = false,
     roadSource = 'OpenStreetMap',
+    realOnly = false,
+    flowRoads = 0,
   } = {}) {
     // `mode` is the CONFIGURED source (live key present vs keyless), not this
     // instant's health — health rides on `error`. The qa-traffic harness pins
     // that meaning.
     const mode = liveMode ? 'live' : 'sim';
+    // Real data only draws no dots, so a dead flow feed leaves nothing on
+    // screen — say so rather than calling it a simulation.
+    if (liveMode && realOnly && flowError) {
+      const degraded = t('NO LIVE FLOW — {reason}', {
+        reason: translateKnown(flowError),
+      });
+      return { mode, error: degraded, loadingLabel: degraded };
+    }
     if (liveMode && flowError) {
       // One string for both fields. The manager's meta line renders `error` and
       // drops `loadingLabel` in its error branch, so the owner's SIMULATED copy
@@ -257,6 +269,22 @@ export function createModel({ state: layerState, services, parts, source }) {
         reason: translateKnown(flowError),
       });
       return { mode, error: degraded, loadingLabel: degraded };
+    }
+    // Real data only: no dots, so no dot coverage — count the flow roads drawn.
+    if (liveMode && realOnly) {
+      return {
+        mode,
+        error: null,
+        loadingLabel: fetching
+          ? t('Syncing flow · Real data only')
+          : flowRoads > 0
+            ? tn(
+                flowRoads,
+                'LIVE · Real data only · {count} flow road',
+                'LIVE · Real data only · {count} flow roads',
+              )
+            : t('LIVE · Real data only · No flow roads in view'),
+      };
     }
     // TomTom and Hybrid name their geometry; OpenStreetMap keeps its match copy.
     if (liveMode && roadSource === 'TomTom') {
@@ -337,7 +365,21 @@ export function createModel({ state: layerState, services, parts, source }) {
    */
 
   function recolorDotsInPlace(label) {
-    if (!layerState._liveMode || !layerState._dots.length) return;
+    if (!layerState._liveMode) return;
+    // Real data only draws no dots, but late flow still has to reach the
+    // retained roads and repaint their segments.
+    if (!layerState._dots.length) {
+      if (!parts.style.realOnlyOn()) return;
+      for (const road of layerState._roads)
+        if (road.source) road.flow = road.source.flow;
+      parts.rendering.rebuildHeatLines(
+        parts.rendering.visibleRoadsForAltitude(
+          layerState._roads,
+          layerState._lastRenderAltitude,
+        ),
+      );
+      return;
+    }
     layerState._bucketCounts = { free: 0, slow: 0, jam: 0, sim: 0 };
     let closedDots = 0;
     const now = Date.now();

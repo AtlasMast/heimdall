@@ -137,10 +137,20 @@ export function createStyle({ state: layerState, services, parts, source }) {
     return layerState._jamViz === 'density' || layerState._jamViz === 'both';
   }
 
-  /** @returns {boolean} Heat-line prototype active. */
+  /** @returns {boolean} Real-data-only view active (needs live mode). */
+
+  function realOnlyOn() {
+    return layerState._realOnly && layerState._liveMode;
+  }
+
+  /** @returns {boolean} Heat-lines drawn (prototype mode or real-data-only). */
 
   function heatlineOn() {
-    return layerState._jamViz === 'heatline' || layerState._jamViz === 'both';
+    return (
+      realOnlyOn() ||
+      layerState._jamViz === 'heatline' ||
+      layerState._jamViz === 'both'
+    );
   }
   return {
     presetProfileActive,
@@ -151,6 +161,7 @@ export function createStyle({ state: layerState, services, parts, source }) {
     restyleDotsInPlace,
     setStylePreset,
     jamDensityOn,
+    realOnlyOn,
     heatlineOn,
   };
 }

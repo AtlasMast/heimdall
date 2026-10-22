@@ -60,6 +60,7 @@ export function createRetention({ state, parts }) {
       record.road.flow = record.road.source.flow;
       if (
         record.road.flow?.closure ||
+        parts.style.realOnlyOn() ||
         (state._liveMode &&
           !record.road.flow &&
           state._uncoveredMode === 'hide')

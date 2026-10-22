@@ -146,6 +146,15 @@ export function createState({ services }) {
   layerState._uncoveredMode = 'sim';
 
   /**
+   * "Real data only": with a TomTom key, spawn no simulated vehicle dots and
+   * draw only the TomTom flow-colored road segments. Ignored in keyless mode,
+   * where the simulation is the only thing to show.
+   * @type {boolean}
+   */
+
+  layerState._realOnly = false;
+
+  /**
    * Jam-viz prototype mode: 'density' = deep-jam density boost + platoon queues
    * + stop-and-go creep; 'heatline' = congestion corridor polylines; 'both';
    * 'none' = shipped main behavior. Live mode only — the keyless simulation
@@ -170,6 +179,13 @@ export function createState({ services }) {
   /** @type {Cesium.GroundPolylinePrimitive|null} Slow-bucket heat-line batch. */
 
   layerState._heatSlowPrim = null;
+
+  /**
+   * Free-flow heat-line batch, drawn only in the real-data-only view.
+   * @type {Cesium.GroundPolylinePrimitive|null}
+   */
+
+  layerState._heatFreePrim = null;
 
   /** @type {number} Heat-lines in the current render (stats). */
 

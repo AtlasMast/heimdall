@@ -2969,5 +2969,20 @@
   "LIVE ONLY ON": "ТОЛЬКО ЭФИР ВКЛ",
   "LIVE ONLY OFF": "ТОЛЬКО ЭФИР ВЫКЛ",
   "No live-video cameras loaded · turn LIVE ONLY off to see stills": "Камеры с прямым видео не загружены · выключите ТОЛЬКО ЭФИР, чтобы видеть снимки",
-  "Show only cameras that stream live video": "Показывать только камеры с прямой видеотрансляцией"
+  "Show only cameras that stream live video": "Показывать только камеры с прямой видеотрансляцией",
+  "Real data only": "Только реальные данные",
+  "Hide simulated vehicles; show only TomTom flow on roads": "Скрыть смоделированные машины; показывать только поток TomTom на дорогах",
+  "Needs a TomTom key: without one, all traffic is simulated": "Нужен ключ TomTom: без него весь трафик смоделирован",
+  "Vehicles are simulated. Add a TomTom key for live road flow.": "Машины смоделированы. Добавьте ключ TomTom, чтобы видеть поток в реальном времени.",
+  "Simulated vehicles hidden. Road colors are live TomTom flow.": "Смоделированные машины скрыты. Цвета дорог — поток TomTom в реальном времени.",
+  "Vehicles are simulated. Only road flow speed and congestion are live.": "Машины смоделированы. В реальном времени только скорость потока и загруженность.",
+  "NO LIVE FLOW — {reason}": "НЕТ ПОТОКА В РЕАЛЬНОМ ВРЕМЕНИ — {reason}",
+  "Syncing flow · Real data only": "Синхронизация потока · Только реальные данные",
+  "LIVE · Real data only · {count} flow roads": {
+    "one": "ОНЛАЙН · Только реальные данные · {count} дорога с потоком",
+    "few": "ОНЛАЙН · Только реальные данные · {count} дороги с потоком",
+    "many": "ОНЛАЙН · Только реальные данные · {count} дорог с потоком",
+    "other": "ОНЛАЙН · Только реальные данные · {count} дороги с потоком"
+  },
+  "LIVE · Real data only · No flow roads in view": "ОНЛАЙН · Только реальные данные · Нет дорог с потоком в кадре"
 }
