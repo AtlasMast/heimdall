@@ -179,10 +179,10 @@ export function createRendering({
     const now = focusNowMs(Date.now());
 
     const interval = layerState._trackedNorad ? 200 : POSITION_UPDATE_MS;
-    // Space Missions keeps this layer enabled for TLE lookup while deliberately
-    // hiding its standalone fleet. Do not rebuild hidden point buffers on the
-    // one-second propagation cadence: that GPU upload presented as a periodic
-    // whole-globe pulse even though the camera remained stationary.
+    // With points hidden the layer may still be enabled for TLE lookup. Do not
+    // rebuild hidden point buffers on the one-second propagation cadence: that
+    // GPU upload presented as a periodic whole-globe pulse even though the
+    // camera remained stationary.
     if (
       layerState._params.showPoints &&
       now - layerState._lastPropagation >= interval
@@ -205,8 +205,7 @@ export function createRendering({
 
     _updatePointFocus(now);
 
-    // Hidden standalone orbit primitives do not need GMST matrix writes while
-    // Space Missions draws the selected mission orbit itself.
+    // Hidden standalone orbit primitives do not need GMST matrix writes.
     if (
       layerState._params.showOrbits &&
       now - layerState._lastRingRotation >= RING_ROTATION_MS

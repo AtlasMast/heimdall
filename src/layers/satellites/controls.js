@@ -483,10 +483,8 @@ export function createControls({ state: layerState, services, parts, source }) {
      * @returns {{ chips: Array<object>, legend: Array<object> }} Row controls.
      */
     getRowControls() {
-      // A dependency owner (Space Missions) borrows this layer for TLE lookup
-      // with showPoints:false. Nothing is rendered, so a legend would describe an
-      // empty sky and a chip write would be silently reverted by that owner's
-      // restore. Surrender the row rather than lie about it.
+      // With showPoints:false nothing is rendered, so a legend would describe
+      // an empty sky. Surrender the row rather than lie about it.
       if (!layerState._params.showPoints) return { chips: [], legend: [] };
 
       const loading = layerState._denseStatus === 'loading';
