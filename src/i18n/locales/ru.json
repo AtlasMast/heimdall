@@ -2984,5 +2984,17 @@
     "many": "ОНЛАЙН · Только реальные данные · {count} дорог с потоком",
     "other": "ОНЛАЙН · Только реальные данные · {count} дороги с потоком"
   },
-  "LIVE · Real data only · No flow roads in view": "ОНЛАЙН · Только реальные данные · Нет дорог с потоком в кадре"
+  "LIVE · Real data only · No flow roads in view": "ОНЛАЙН · Только реальные данные · Нет дорог с потоком в кадре",
+  "No saved views yet": "Сохранённых видов пока нет",
+  "Delete favorite {name}": "Удалить избранное: {name}",
+  "Browser storage is unavailable — favorites last until reload": "Хранилище браузера недоступно — избранное сохранится только до перезагрузки",
+  "Name the view to save it": "Назовите вид, чтобы сохранить его",
+  "Favorites are full — delete one first": "Избранное заполнено — сначала удалите один вид",
+  "This view cannot be saved yet": "Этот вид пока нельзя сохранить",
+  "Saved {name}": "Сохранено: {name}",
+  "Save the current view as a favorite": "Сохранить текущий вид в избранное",
+  "SAVE VIEW": "СОХРАНИТЬ ВИД",
+  "Favorite name": "Название избранного",
+  "Name this view…": "Назовите этот вид…",
+  "Saved views": "Сохранённые виды"
 }

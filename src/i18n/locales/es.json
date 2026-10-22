@@ -2916,5 +2916,17 @@
     "many": "EN VIVO · Solo datos reales · {count} de vías con flujo",
     "other": "EN VIVO · Solo datos reales · {count} vías con flujo"
   },
-  "LIVE · Real data only · No flow roads in view": "EN VIVO · Solo datos reales · Sin vías con flujo a la vista"
+  "LIVE · Real data only · No flow roads in view": "EN VIVO · Solo datos reales · Sin vías con flujo a la vista",
+  "No saved views yet": "Aún no hay vistas guardadas",
+  "Delete favorite {name}": "Eliminar favorito {name}",
+  "Browser storage is unavailable — favorites last until reload": "El almacenamiento del navegador no está disponible: los favoritos duran hasta recargar",
+  "Name the view to save it": "Pon nombre a la vista para guardarla",
+  "Favorites are full — delete one first": "Favoritos llenos: elimina uno primero",
+  "This view cannot be saved yet": "Esta vista aún no se puede guardar",
+  "Saved {name}": "Guardado: {name}",
+  "Save the current view as a favorite": "Guardar la vista actual como favorito",
+  "SAVE VIEW": "GUARDAR VISTA",
+  "Favorite name": "Nombre del favorito",
+  "Name this view…": "Nombra esta vista…",
+  "Saved views": "Vistas guardadas"
 }

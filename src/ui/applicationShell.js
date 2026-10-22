@@ -317,6 +317,7 @@ export class StyleManager extends ShellFacade {
         trafficLayer: services.trafficLayer,
         flyToPresetLocation: services.flyToPresetLocation,
         flyToPOI: services.flyToPOI,
+        flyToSavedView: services.flyToSavedView,
         GLOBE_VIEW: services.GLOBE_VIEW,
         flyToGlobeView: services.flyToGlobeView,
         interruptCameraMotion: services.interruptCameraMotion,
@@ -337,8 +338,15 @@ export class StyleManager extends ShellFacade {
         _cockpitResetGlobeBtn: this._cockpitResetGlobeBtn,
         _locationMiniCity: this._locationMiniCity,
         _locationMiniPoi: this._locationMiniPoi,
+        _favoriteSaveBtn: this._favoriteSaveBtn,
+        _favoriteNameInput: this._favoriteNameInput,
+        _favoritesList: this._favoritesList,
       },
       operations: {
+        snapshotShareHash: () =>
+          this.shareLinkManager?.snapshotHash?.() || null,
+        applyLayerState: (state) =>
+          this._shareRestoration.applyLayerState(state),
         _beginDeferredNavigation: (...args) =>
           this._beginDeferredNavigation(...args),
         _reassertNavigationHandoff: (...args) =>
