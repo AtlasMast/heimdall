@@ -3,8 +3,9 @@
  *
  * The tracker listens to pointer movement over the globe canvas and keeps only
  * the latest position plus a dwell anchor — no per-move picking. A pick runs
- * lazily: once when the pointer settles (a dwell) and once at a snapshot, and
- * the snapshot reuses the dwell's pick when the pointer has not moved since.
+ * lazily: once when the pointer settles (a dwell, only while a voice session
+ * is live) and once at a snapshot, and the snapshot reuses the dwell's pick
+ * when the pointer has not moved since.
  *
  * Snapshots are taken when the user decides to ask — Space keydown for
  * push-to-talk, speech start for open mic — not when they finish talking,
@@ -191,6 +192,10 @@ export function pointerChip(snapshot) {
  * @param {() => number} [options.now] Monotonic clock (ms).
  * @param {() => string|null} [options.cameraKey] Camera identity; a dwell
  *   pick taken under another camera pose is never reused.
+ * @param {() => boolean} [options.prefetch] May a settled pointer pick ahead
+ *   of a snapshot now? The first Cesium pick compiles pick shaders and stalls
+ *   the main thread for 100+ ms, so the app prefetches only while a voice
+ *   session is live; a snapshot still picks lazily either way.
  * @param {Function} [options.setTimer]
  * @param {Function} [options.clearTimer]
  */
@@ -199,6 +204,7 @@ export function createPointerTracker({
   pick,
   now = () => performance.now(),
   cameraKey = () => null,
+  prefetch = () => true,
   setTimer = (fn, ms) => setTimeout(fn, ms),
   clearTimer = (id) => clearTimeout(id),
 }) {
@@ -247,7 +253,7 @@ export function createPointerTracker({
     cancelDwell();
     dwellTimer = setTimer(() => {
       dwellTimer = null;
-      if (destroyed || !inside || !anchor) return;
+      if (destroyed || !inside || !anchor || !prefetch()) return;
       dwell = { x, y, at: now(), camera: cameraKey(), pick: safePick(x, y) };
     }, POINTER_DWELL_MS);
   }

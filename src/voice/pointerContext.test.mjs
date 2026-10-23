@@ -10,7 +10,7 @@ import {
   pointerChip,
 } from './pointerContext.js';
 
-function harness({ pick } = {}) {
+function harness({ pick, prefetch } = {}) {
   let clock = 1000;
   const timers = new Map();
   let nextTimer = 1;
@@ -34,6 +34,7 @@ function harness({ pick } = {}) {
       return id;
     },
     clearTimer: (id) => timers.delete(id),
+    ...(prefetch ? { prefetch } : {}),
     pick:
       pick ||
       ((x, y) => {
@@ -93,6 +94,23 @@ test('dwell: the pick runs once when the pointer settles and the snapshot reuses
   h.move(308, 153); // still the same dwell, but not the picked pixel
   h.tracker.capture('speech_start');
   assert.equal(h.picks.length, 3, 're-pick at the exact spot');
+});
+
+test('dwell: no prefetch pick while prefetching is off; the snapshot picks lazily', () => {
+  let live = false;
+  const h = harness({ prefetch: () => live });
+  h.move(300, 150);
+  h.advance(POINTER_DWELL_MS);
+  assert.equal(h.picks.length, 0, 'a settled pointer does not pick');
+  const snapshot = h.tracker.capture('keydown');
+  assert.equal(snapshot.target, 'entity');
+  assert.equal(h.picks.length, 1, 'the snapshot picks on demand');
+  live = true;
+  h.move(500, 150);
+  h.advance(POINTER_DWELL_MS);
+  assert.equal(h.picks.length, 2, 'prefetch resumes once allowed');
+  h.tracker.capture('keydown');
+  assert.equal(h.picks.length, 2, 'and the snapshot reuses it');
 });
 
 test('freshness: off-canvas, parked at the edge, or idle too long is not a referent', () => {

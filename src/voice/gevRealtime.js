@@ -34,6 +34,8 @@ export function withToolCatalog(runner, loadCatalog) {
 export function initGevVoiceCommands(options) {
   const canvas = options.viewer?.scene?.canvas || null;
   const cameraKey = () => cameraPoseKey(options.viewer);
+  // The commands (and their session) exist only after the tracker.
+  const voice = { live: () => false };
   // Point-and-ask: the tracker and referents are shared by the runner (which
   // resolves 'pointer' and referent:n) and the controls (which snapshot the
   // pointer at turn start and clear both when the session ends).
@@ -41,6 +43,7 @@ export function initGevVoiceCommands(options) {
     ? createPointerTracker({
         element: canvas,
         cameraKey,
+        prefetch: () => voice.live(),
         pick: createPointerPicker({
           viewer: options.viewer,
           dataManager: options.dataManager,
@@ -59,6 +62,7 @@ export function initGevVoiceCommands(options) {
       options.toolCatalog,
     ),
   });
+  voice.live = () => commands.session?.isActive?.() === true;
   deixis.imageFrame = () => commands.retainedImageFrame?.() || null;
   deixis.onPointerUsed = () => commands.announcePointer?.();
   commands.session?.signal?.addEventListener(
