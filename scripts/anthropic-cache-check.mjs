@@ -9,7 +9,9 @@ import { createAnthropicMessenger } from '../server/providers/anthropic/messenge
 import { promptCacheUsage } from '../server/providers/anthropic/prompt-cache.js';
 
 if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('ANTHROPIC_API_KEY is not set.');
+  console.error(
+    'ANTHROPIC_API_KEY is not set (looked in the environment, .env and $HOME/anthropic.env).',
+  );
   process.exit(1);
 }
 
@@ -26,14 +28,22 @@ const claude = createAnthropicMessenger({
 
 const results = [];
 for (const attempt of ['first', 'second']) {
-  const message = await claude.create(
-    {
-      system,
-      messages: [{ role: 'user', content: 'Ready.' }],
-      max_tokens: 0,
-    },
-    { cacheTail: false },
-  );
+  let message;
+  try {
+    message = await claude.create(
+      {
+        system,
+        messages: [{ role: 'user', content: 'Ready.' }],
+        max_tokens: 0,
+      },
+      { cacheTail: false },
+    );
+  } catch (error) {
+    console.error(
+      `FAIL: ${attempt} call: ${error?.status || ''} ${error?.error?.error?.type || error?.message || error}`.trim(),
+    );
+    process.exit(1);
+  }
   results.push({ attempt, ...promptCacheUsage(message.usage) });
 }
 

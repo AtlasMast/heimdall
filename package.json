@@ -55,7 +55,7 @@
     "check:boundaries": "node scripts/check-import-directions.mjs && node scripts/check-package-boundaries.mjs",
     "qa:transit": "node scripts/qa-transit.mjs",
     "mcp": "node server/mcp/stdio.js",
-    "anthropic:cache-check": "node --env-file-if-exists=.env scripts/anthropic-cache-check.mjs"
+    "anthropic:cache-check": "node --env-file-if-exists=.env --env-file-if-exists=$HOME/anthropic.env scripts/anthropic-cache-check.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.1.0",

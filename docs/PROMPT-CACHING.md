@@ -60,6 +60,15 @@ is changing.
 | `ANTHROPIC_PROMPT_CACHE_TTL` | `5m`              | `1h` for calls usually 5 to 60 minutes apart.          |
 | `ANTHROPIC_FALLBACKS`        | on                | `off` stops retrying a refused request on other model. |
 
+## Where the key lives
+
+On playstation the key is in `/var/lib/heimdall/anthropic.env` (the heimdall
+user's home, mode 600), kept out of the repo checkout.
+`npm run anthropic:cache-check` reads `.env` and then `$HOME/anthropic.env`.
+A server process that calls the messenger needs the variable in its own
+environment; for the systemd unit that means
+`EnvironmentFile=/var/lib/heimdall/anthropic.env`.
+
 ## The builder agent
 
 If the builder runs as its own script or service, have it call the messenger as
