@@ -1,0 +1,16 @@
+Heimdall
+========
+
+Heimdall is a personal fork of God's Eye View
+(https://github.com/bilawalsidhu/gods-eye-view), copyright (c) 2026
+Bilawal Sidhu, licensed under the MIT License.
+
+Heimdall incorporates features and code adapted from Osiris
+(https://github.com/simplifaisoul/osiris), copyright (c) 2026
+simplifaisoul, licensed under the MIT License.
+
+Both upstream projects are distributed under the MIT License. Their
+copyright and permission notices are retained as required; see LICENSE
+for the full MIT License text. Portions of each upstream carry their own
+third-party attributions, recorded in THIRD_PARTY_NOTICES.md and in the
+respective data-source documentation.

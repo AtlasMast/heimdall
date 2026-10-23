@@ -2,7 +2,7 @@
 
 # 🌐 Heimdall
 
-_A fork of [God's Eye View](https://github.com/bilawalsidhu/gods-eye-view) by Bilawal Sidhu. The rest of this README is upstream's._
+_A fork of [God's Eye View](https://github.com/bilawalsidhu/gods-eye-view) by Bilawal Sidhu, incorporating features and code from [Osiris](https://github.com/simplifaisoul/osiris) by simplifaisoul. Both are under the MIT License; see [NOTICE](NOTICE). The rest of this README is upstream's._
 
 [![CI](https://github.com/bilawalsidhu/gods-eye-view/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bilawalsidhu/gods-eye-view/actions/workflows/ci.yml) [![Reached #1 on GitHub Trending](https://img.shields.io/badge/%231_GitHub_Trending-thank_you!-F0A63C?style=flat-square&logo=github)](https://x.com/bilawalsidhu/status/2093798887815348521)
 
