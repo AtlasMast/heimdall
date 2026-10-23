@@ -91,6 +91,11 @@
             <input type="text" id="location-search" placeholder="Search any location..." autocomplete="off" spellcheck="false" aria-label="Search location by name or coordinates" data-i18n-aria-label data-i18n-placeholder />
           </div>
         </div>
+        <div class="favorites-row" id="favorites-row">
+          <button id="favorite-save" class="location-pill favorite-save-btn" type="button" aria-controls="favorite-name" aria-expanded="false" title="Save the current view as a favorite" data-i18n-title><span aria-hidden="true">★</span> <span data-i18n>SAVE VIEW</span></button>
+          <input type="text" id="favorite-name" class="favorite-name-input" maxlength="40" placeholder="Name this view…" autocomplete="off" spellcheck="false" aria-label="Favorite name" data-i18n-aria-label data-i18n-placeholder />
+          <div id="favorites-list" class="location-pills favorites-list" aria-label="Saved views" data-i18n-aria-label></div>
+        </div>
       </div>
     </div>
   </div>

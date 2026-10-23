@@ -210,6 +210,13 @@ export class ShareRestoration {
       });
     }
   }
+  /** Apply a Favorite's saved layer state; resolves with per-layer results. */
+  applyLayerState(state) {
+    return (
+      this._layerStateCoordinator?.applyLayerState?.(state) ||
+      Promise.resolve([])
+    );
+  }
   cancelSelection() {
     if (
       this._hasShareState &&

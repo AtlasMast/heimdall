@@ -2861,3 +2861,36 @@ test('explicit provider switches reach durable state without adopting unrelated 
     coordinator.destroy();
   }
 });
+
+test('a favorite layer state applies, persists, and drops saved Follow targets', async () => {
+  const storage = memoryStorage();
+  const manager = productionManager();
+  const share = shareSink();
+  const coordinator = new LayerStateCoordinator(manager, share, { storage });
+  await coordinator.start();
+  await manager.setEnabled('radio', true, { origin: 'user' });
+
+  const saved = createDefaultLayerState();
+  saved.enabledLayerIds = ['earthquakes', 'flights'];
+  saved.options.flights = {
+    ...saved.options.flights,
+    selectedFlightsTrackingId: 'abc123',
+  };
+  const updatesBefore = share.updates;
+  await coordinator.applyLayerState(saved);
+
+  assert.equal(manager.isEnabled('earthquakes'), true);
+  assert.equal(manager.isEnabled('flights'), true);
+  assert.equal(manager.isEnabled('radio'), false);
+  const durable = coordinator.getDurableState();
+  assert.equal(durable.options.flights.selectedFlightsTrackingId, null);
+  assert.equal(coordinator.source, 'local');
+  assert.ok(share.updates > updatesBefore);
+  assert.deepEqual(
+    parseStoredLayerState(storage.writes.at(-1)[1]),
+    normalizeLayerState(durable),
+  );
+  assert.deepEqual(await coordinator.applyLayerState(null), []);
+  coordinator.destroy();
+  assert.deepEqual(await coordinator.applyLayerState(saved), []);
+});

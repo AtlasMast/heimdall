@@ -2,6 +2,13 @@ import * as Cesium from 'cesium';
 import { t } from '../i18n/index.js';
 import { createStateChannel } from '../app/stateChannel.js';
 import { LocationControls } from './location.js';
+import { FavoritesControls } from './favoritesControls.js';
+import {
+  FavoritesStore,
+  favoriteViewFromHash,
+  normalizeFavoriteName,
+} from '../favorites.js';
+import { decodeLayerStateParams } from '../data/layerState.js';
 
 /** Own destination selection, lookup, orbit and world-jump lifetime. */
 export class LocationNavigation {
@@ -31,6 +38,10 @@ export class LocationNavigation {
     this._globeResetPromise = null;
     this._cancelGlobeReset = null;
     this._worldJumpActive = false;
+    this._favorites = null;
+    this._favoritesControls = null;
+    this._favoritesStorageWarned = false;
+    this._activeFavoriteId = null;
     this.orbitController = new services.OrbitController(viewer);
     this._orbitIndicator = null;
     this._locationState = createStateChannel(
@@ -84,6 +95,8 @@ export class LocationNavigation {
       this._activeLocationSearchGeneration = change.generation;
     else if (change.type === 'found') {
       this._searchedLocationLabel = state.destination.label || state.query;
+      this._activeFavoriteId = null;
+      this._favoritesControls?.highlight(null);
       this._setActiveLocation(null);
       this._currentPoi = null;
       this._collapsePOIRow();
@@ -146,6 +159,111 @@ export class LocationNavigation {
       onSearch: (query) => this._locationLookup.run(query),
       onReset: () => this.resetToGlobeView(),
     });
+    this._initFavorites();
+  }
+
+  _initFavorites() {
+    this._favoritesControls?.destroy();
+    this._favorites ||= new FavoritesStore();
+    this._favoritesControls = new FavoritesControls({
+      elements: {
+        saveButton: this._favoriteSaveBtn,
+        nameInput: this._favoriteNameInput,
+        list: this._favoritesList,
+      },
+      suggestName: () => this._suggestFavoriteName(),
+      onSave: (name) => this.saveFavorite(name),
+      onFly: (id) => this.flyToFavorite(id),
+      onDelete: (id) => this.deleteFavorite(id),
+    });
+    this._renderFavorites();
+  }
+
+  _renderFavorites() {
+    this._favoritesControls?.render(this._favorites?.list() || []);
+    this._favoritesControls?.highlight(this._activeFavoriteId);
+  }
+
+  _warnFavoritesNotPersisted(persisted) {
+    if (persisted || this._favoritesStorageWarned) return;
+    this._favoritesStorageWarned = true;
+    this._showToast(
+      t('Browser storage is unavailable — favorites last until reload'),
+    );
+  }
+
+  _suggestFavoriteName() {
+    const { CITY_POIS } = this.services;
+    const city = this._activeLocationId
+      ? CITY_POIS?.[this._activeLocationId]
+      : null;
+    const base = city
+      ? [city.name, this._currentPoi?.name].filter(Boolean).join(' · ')
+      : String(this._searchedLocationLabel || '').split(',')[0];
+    return normalizeFavoriteName(base);
+  }
+
+  /** Save the current view under a name. Returns false when nothing was saved. */
+  saveFavorite(name) {
+    if (this._disposed || !this._favorites) return false;
+    const label = normalizeFavoriteName(name);
+    if (!label) {
+      this._showToast(t('Name the view to save it'));
+      return false;
+    }
+    const hash = this.snapshotShareHash?.();
+    const result = hash
+      ? this._favorites.add(label, hash)
+      : { ok: false, reason: 'invalid-view' };
+    if (!result.ok) {
+      this._showToast(
+        result.reason === 'full'
+          ? t('Favorites are full — delete one first')
+          : t('This view cannot be saved yet'),
+      );
+      return result.reason === 'full';
+    }
+    this._activeFavoriteId = result.favorite.id;
+    this._renderFavorites();
+    this._showToast(t('Saved {name}', { name: label }));
+    this._warnFavoritesNotPersisted(result.persisted);
+    return true;
+  }
+
+  deleteFavorite(id) {
+    if (this._disposed || !this._favorites) return;
+    const result = this._favorites.remove(id);
+    if (!result.ok) return;
+    if (this._activeFavoriteId === id) this._activeFavoriteId = null;
+    this._renderFavorites();
+    this._warnFavoritesNotPersisted(result.persisted);
+  }
+
+  /** Fly to a saved favorite's exact pose and bring its saved layers back. */
+  flyToFavorite(id) {
+    const { flyToSavedView } = this.services;
+    const favorite = this._favorites?.get(id);
+    const view = favorite ? favoriteViewFromHash(favorite.hash) : null;
+    if (this._disposed || !view || typeof flyToSavedView !== 'function')
+      return false;
+    this._stopOrbit();
+    const result = this._flyWithTransition(true, (hooks) =>
+      flyToSavedView(this.viewer, view, hooks),
+    );
+    if (result === false) return false;
+    const layerState = decodeLayerStateParams(
+      new URLSearchParams(favorite.hash),
+    );
+    if (layerState) void this.applyLayerState?.(layerState);
+    this._setActiveLocation(null);
+    this._collapsePOIRow();
+    this._currentPoi = null;
+    this._currentTarget = null;
+    this._searchedLocationLabel = favorite.name;
+    this._activeFavoriteId = id;
+    this._favoritesControls?.highlight(id);
+    this._updateLocationMiniStatus();
+    return true;
   }
 
   _beginWorldJumpTransition() {
@@ -256,6 +374,10 @@ export class LocationNavigation {
 
   _setActiveLocation(locationId) {
     this._activeLocationId = locationId;
+    if (locationId) {
+      this._activeFavoriteId = null;
+      this._favoritesControls?.highlight(null);
+    }
     // A preset city is now what the camera is framed on, so any earlier
     // free-text destination has been superseded. Clearing only on a real id
     // leaves the search path's own _setActiveLocation(null) untouched.
@@ -424,6 +546,7 @@ export class LocationNavigation {
     this._locationLookupUnsubscribe = null;
     this._locationLookup?.destroy();
     this._locationControls?.destroy();
+    this._favoritesControls?.destroy();
     this._cancelGlobeReset?.();
     this._cancelGlobeReset = null;
     if (this._worldJumpActive) this._endWorldJumpTransition();
