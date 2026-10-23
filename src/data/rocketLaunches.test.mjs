@@ -305,18 +305,22 @@ test('shifts replay start time so pause duration does not advance the mission', 
   assert.equal(replayStartAfterPause(1000, Number.NaN, 9500), 1000);
 });
 
-test('restores the complete standalone Satellite style after mission mode', () => {
+test('keeps the standalone Satellite style during and after mission mode', () => {
   const standalone = {
     catalog: 'core',
     showPoints: true,
     showOrbits: true,
     labelDensity: 'operator',
   };
-  assert.deepEqual(satelliteParamsForSpaceMissions(standalone), {
-    ...standalone,
-    catalog: 'dense',
-    showPoints: false,
-    showOrbits: false,
+  assert.deepEqual(satelliteParamsForSpaceMissions(standalone), standalone);
+  assert.deepEqual(
+    satelliteParamsForSpaceMissions({ ...standalone, showOrbits: false }),
+    { ...standalone, showOrbits: false },
+  );
+  assert.deepEqual(satelliteParamsForSpaceMissions(null), {
+    catalog: 'core',
+    showPoints: true,
+    showOrbits: true,
   });
   assert.deepEqual(satelliteParamsAfterSpaceMissions(standalone), standalone);
   assert.deepEqual(satelliteParamsAfterSpaceMissions(null), {

@@ -3232,7 +3232,7 @@ test('an async layer pushes its own row refresh, and a busy chip refuses clicks'
 });
 
 test('a layer that surrenders its row controls hides the block entirely', async () => {
-  // Space Missions borrows the satellite layer with showPoints:false; the row
+  // A dependency owner may borrow the satellite layer with showPoints:false; the row
   // must not advertise a legend for an empty sky or offer a chip whose write
   // the dependency owner will silently revert.
   const originalDocument = globalThis.document;

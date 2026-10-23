@@ -13,18 +13,17 @@ export function createPolicyHelpers({
   source,
 }) {
   /**
-   * Derive the temporary Satellite display mode required by Space Missions.
+   * Derive the Satellite display mode used while Space Missions is on. The
+   * user's own satellite view stays on screen beside the missions; payloads
+   * missing from that catalog still resolve through the active-TLE lookup.
    * @param {object|null} currentParams Complete pre-mission Satellite parameters.
-   * @returns {object} Temporary mission-specific Satellite parameters.
+   * @returns {object} Satellite parameters for mission mode.
    */
 
   function satelliteParamsForSpaceMissions(currentParams) {
     return {
       ...SATELLITE_STANDALONE_DEFAULTS,
       ...(currentParams || {}),
-      catalog: 'dense',
-      showPoints: false,
-      showOrbits: false,
     };
   }
 
